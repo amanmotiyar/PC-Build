@@ -323,21 +323,22 @@ function stdMat(hex, opts = {}) {
 function buildCaseShell(dims, cabinet) {
   const group = new THREE.Group();
   const { w, h, d } = dims;
-  const edges = new THREE.EdgesGeometry(new THREE.BoxGeometry(w, h, d));
+  const boxGeo = new THREE.BoxGeometry(w, h, d);
+  const edges = new THREE.EdgesGeometry(boxGeo);
   const tier = cabinet?.tier;
-  const tint = !cabinet ? 4936800 : tier === "Budget" ? 7041664 : tier === "Mainstream" ? 9082531 : tier === "High-End" ? 5232841 : 13206090;
-  const wire = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: tint, transparent: true, opacity: cabinet ? 0.85 : 0.4 }));
+  const tint = !cabinet ? 7042176 : tier === "Budget" ? 7041664 : tier === "Mainstream" ? 9082531 : tier === "High-End" ? 5232841 : 13206090;
+  const wire = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: tint, transparent: true, opacity: cabinet ? 0.85 : 0.65 }));
   wire.position.y = h / 2;
   group.add(wire);
+  const ghostFill = new THREE.Mesh(boxGeo, stdMat(0, { opacity: cabinet ? 0.12 : 0.22, side: THREE.BackSide }));
+  ghostFill.position.y = h / 2;
+  group.add(ghostFill);
   if (cabinet) {
     const glassOpacity = tier === "High-End" || tier === "Enthusiast" ? 0.1 : 0.3;
     const glass = new THREE.Mesh(new THREE.PlaneGeometry(d, h), stdMat(tint, { opacity: glassOpacity, metalness: 0.1, roughness: 0.2, side: THREE.DoubleSide }));
     glass.rotation.y = Math.PI / 2;
     glass.position.set(w / 2 + 0.02, h / 2, 0);
     group.add(glass);
-    const fill = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), stdMat(0, { opacity: 0.12, side: THREE.BackSide }));
-    fill.position.y = h / 2;
-    group.add(fill);
   }
   return group;
 }
@@ -508,6 +509,54 @@ function buildOsGlyph(pos) {
   mesh.position.copy(pos);
   return mesh;
 }
+function buildGhostPart(catId, pos) {
+  const mat = stdMat(4015184, { opacity: 0.28, metalness: 0.1, roughness: 0.8 });
+  const edgeMat = new THREE.LineBasicMaterial({ color: 5923697, transparent: true, opacity: 0.55 });
+  let geo, offset = new THREE.Vector3(0, 0, 0);
+  switch (catId) {
+    case "cpu":
+      geo = new THREE.BoxGeometry(0.18, 0.85, 0.85);
+      break;
+    case "cooler":
+      geo = new THREE.BoxGeometry(0.9, 1.1, 0.9);
+      break;
+    case "motherboard":
+      geo = new THREE.BoxGeometry(0.1, 4.6, 4.4);
+      break;
+    case "gpu":
+      geo = new THREE.BoxGeometry(0.45, 1.25, 2.6);
+      offset = new THREE.Vector3(0, 0, -0.95);
+      break;
+    case "ram":
+      geo = new THREE.BoxGeometry(0.4, 1, 0.46);
+      break;
+    case "storage":
+      geo = new THREE.BoxGeometry(0.05, 0.1, 0.55);
+      break;
+    case "psu":
+      geo = new THREE.BoxGeometry(1.1, 0.55, 1.1);
+      break;
+    case "fans":
+      geo = new THREE.CylinderGeometry(0.5, 0.5, 0.06, 16);
+      break;
+    case "monitor":
+      geo = new THREE.BoxGeometry(1.5, 0.85, 0.06);
+      break;
+    case "os":
+      geo = new THREE.IcosahedronGeometry(0.2, 0);
+      break;
+    default:
+      return null;
+  }
+  const group = new THREE.Group();
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.copy(pos).add(offset);
+  group.add(mesh);
+  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeMat);
+  edges.position.copy(mesh.position);
+  group.add(edges);
+  return group;
+}
 function buildRig(selections, dims, issues) {
   const group = new THREE.Group();
   group.add(buildCaseShell(dims, selections.cabinet));
@@ -520,43 +569,47 @@ function buildRig(selections, dims, issues) {
     const sel = selections[cat.id];
     switch (cat.id) {
       case "cpu":
-        if (sel) group.add(buildCpu(pos, status));
+        group.add(sel ? buildCpu(pos, status) : buildGhostPart(cat.id, pos));
         break;
       case "cooler":
-        if (sel) group.add(buildCooler(pos, sel, dims, status));
+        group.add(sel ? buildCooler(pos, sel, dims, status) : buildGhostPart(cat.id, pos));
         break;
       case "motherboard":
-        if (sel) group.add(buildMotherboard(pos, sel));
+        group.add(sel ? buildMotherboard(pos, sel) : buildGhostPart(cat.id, pos));
         break;
       case "gpu":
-        if (sel) group.add(buildGpu(pos, sel, status));
+        group.add(sel ? buildGpu(pos, sel, status) : buildGhostPart(cat.id, pos));
         break;
       case "ram":
-        if (sel) group.add(buildRam(pos, sel, status));
+        group.add(sel ? buildRam(pos, sel, status) : buildGhostPart(cat.id, pos));
         break;
       case "storage":
-        if (sel) group.add(buildStorage(pos, sel, status));
+        group.add(sel ? buildStorage(pos, sel, status) : buildGhostPart(cat.id, pos));
         break;
       case "psu":
-        if (sel) group.add(buildPsu(pos, sel, status));
+        group.add(sel ? buildPsu(pos, sel, status) : buildGhostPart(cat.id, pos));
         break;
       case "fans":
-        if (sel) group.add(buildFans(pos, sel, status, dims));
+        group.add(sel ? buildFans(pos, sel, status, dims) : buildGhostPart(cat.id, pos));
         break;
       case "monitor":
-        if (sel) group.add(buildMonitor(pos, sel));
+        group.add(sel ? buildMonitor(pos, sel) : buildGhostPart(cat.id, pos));
         break;
       case "os": {
         if (sel && sel.id !== "os-none") {
           const glyph = buildOsGlyph(pos);
           group.add(glyph);
           group.userData.osGlyph = glyph;
+        } else {
+          const ghost = buildGhostPart(cat.id, pos);
+          if (ghost) group.add(ghost);
         }
         break;
       }
       default:
         break;
     }
+    if (cat.id === "paste") return;
     labels.push({ id: cat.id, pos, status, title: sel ? sel.name : `Choose ${cat.label.toLowerCase()}` });
   });
   return { group, labels };
@@ -590,16 +643,33 @@ function BuildStage({ selections, activeCat, issues, onSelectCat }) {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     mount.appendChild(renderer.domElement);
-    scene.add(new THREE.AmbientLight(16777215, 0.55));
-    const key = new THREE.DirectionalLight(16777215, 0.9);
+    scene.add(new THREE.AmbientLight(16777215, 0.78));
+    const key = new THREE.DirectionalLight(16777215, 1.05);
     key.position.set(6, 10, 8);
     scene.add(key);
-    const rim = new THREE.PointLight(5232841, 0.6, 30);
+    const fill = new THREE.DirectionalLight(16777215, 0.4);
+    fill.position.set(-5, 6, 4);
+    scene.add(fill);
+    const rim = new THREE.PointLight(5232841, 0.85, 30);
     rim.position.set(-6, 4, -6);
     scene.add(rim);
-    const warm = new THREE.PointLight(13206090, 0.5, 30);
+    const warm = new THREE.PointLight(13206090, 0.7, 30);
     warm.position.set(5, 2, 6);
     scene.add(warm);
+    const ground = new THREE.Mesh(
+      new THREE.CircleGeometry(6.5, 40),
+      new THREE.MeshBasicMaterial({ color: 1448738, transparent: true, opacity: 0.55, side: THREE.DoubleSide })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.02;
+    scene.add(ground);
+    const groundRing = new THREE.Mesh(
+      new THREE.RingGeometry(6.3, 6.5, 48),
+      new THREE.MeshBasicMaterial({ color: 13206090, transparent: true, opacity: 0.35, side: THREE.DoubleSide })
+    );
+    groundRing.rotation.x = -Math.PI / 2;
+    groundRing.position.y = -0.01;
+    scene.add(groundRing);
     const rig = new THREE.Group();
     scene.add(rig);
     const state = {
@@ -723,19 +793,28 @@ function BuildStage({ selections, activeCat, issues, onSelectCat }) {
     state.radius = 11;
     state.lastInteraction = Date.now() - 5e3;
   }
-  return /* @__PURE__ */ React.createElement("div", { className: "stage-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "stage-mount", ref: mountRef }), /* @__PURE__ */ React.createElement("div", { className: "stage-labels" }, labels.filter((l) => l.visible).map((l) => /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      key: l.id,
-      type: "button",
-      className: `stage-label ${activeCat === l.id ? "stage-label-active" : ""}`,
-      style: { left: l.x, top: l.y },
-      onClick: () => onSelectCat(l.id),
-      title: l.title
-    },
-    /* @__PURE__ */ React.createElement(StatusDot, { level: l.status }),
-    /* @__PURE__ */ React.createElement("span", null, CATEGORY_MAP[l.id]?.short)
-  ))), hint && /* @__PURE__ */ React.createElement("div", { className: "stage-hint" }, "Drag to rotate \\u00b7 scroll to zoom"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "stage-reset", onClick: resetView, title: "Reset view" }, /* @__PURE__ */ React.createElement(RotateCcw, { size: 13 })));
+  const [hoveredId, setHoveredId] = useState(null);
+  const activeMeta = CATEGORY_MAP[activeCat];
+  const ActiveIcon = activeMeta?.icon;
+  const activeSel = selections[activeCat];
+  return /* @__PURE__ */ React.createElement("div", { className: "stage-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "stage-mount", ref: mountRef }), /* @__PURE__ */ React.createElement("div", { className: "stage-caption" }, ActiveIcon && /* @__PURE__ */ React.createElement(ActiveIcon, { size: 15 }), /* @__PURE__ */ React.createElement("span", { className: "stage-caption-cat" }, activeMeta?.label), /* @__PURE__ */ React.createElement("span", { className: "stage-caption-sep" }, "\\u00b7"), /* @__PURE__ */ React.createElement("span", { className: `stage-caption-name ${activeSel ? "" : "stage-caption-empty"}` }, activeSel ? activeSel.name : "Not selected yet")), /* @__PURE__ */ React.createElement("div", { className: "stage-labels" }, labels.filter((l) => l.visible).map((l) => {
+    const expanded = activeCat === l.id || hoveredId === l.id;
+    return /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        key: l.id,
+        type: "button",
+        className: `stage-label ${expanded ? "stage-label-expanded" : ""} ${activeCat === l.id ? "stage-label-active" : ""}`,
+        style: { left: l.x, top: l.y },
+        onClick: () => onSelectCat(l.id),
+        onMouseEnter: () => setHoveredId(l.id),
+        onMouseLeave: () => setHoveredId((h) => h === l.id ? null : h),
+        title: l.title
+      },
+      /* @__PURE__ */ React.createElement(StatusDot, { level: l.status }),
+      expanded && /* @__PURE__ */ React.createElement("span", null, CATEGORY_MAP[l.id]?.short)
+    );
+  })), hint && /* @__PURE__ */ React.createElement("div", { className: "stage-hint" }, "Drag to rotate \\u00b7 scroll to zoom"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "stage-reset", onClick: resetView, title: "Reset view" }, /* @__PURE__ */ React.createElement(RotateCcw, { size: 13 })));
 }
 function App() {
   const [activeCat, setActiveCat] = useState("cpu");
@@ -1094,17 +1173,34 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outl
 .pill { padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--text-dim); font-size: 12px; font-weight: 500; }
 .pill-active { background: var(--copper); border-color: var(--copper); color: #1A1206; }
 
-.stage-wrap { position: relative; height: 380px; margin-bottom: 18px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: radial-gradient(circle at 50% 35%, #1a1f27 0%, #0F1115 75%); }
+.stage-wrap { position: relative; height: 400px; margin-bottom: 18px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: radial-gradient(circle at 50% 38%, #1d2531 0%, #12151b 65%, #0F1115 100%); }
 .stage-mount { width: 100%; height: 100%; touch-action: none; cursor: grab; }
 .stage-mount:active { cursor: grabbing; }
+
+.stage-caption {
+  position: absolute; top: 12px; left: 12px; z-index: 2;
+  display: flex; align-items: center; gap: 7px;
+  background: rgba(18,21,27,0.92); border: 1px solid var(--line); border-radius: 9px;
+  padding: 8px 13px; font-size: 13px; backdrop-filter: blur(4px);
+  max-width: calc(100% - 70px);
+}
+.stage-caption svg { color: var(--copper-soft); flex-shrink: 0; }
+.stage-caption-cat { font-weight: 700; font-family: 'Space Grotesk', sans-serif; white-space: nowrap; }
+.stage-caption-sep { color: var(--text-dim); }
+.stage-caption-name { color: var(--cyan); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stage-caption-empty { color: var(--text-dim); font-weight: 500; font-style: italic; }
+
 .stage-labels { position: absolute; inset: 0; pointer-events: none; }
 .stage-label {
   position: absolute; transform: translate(-50%, -50%);
   display: flex; align-items: center; gap: 5px;
   background: rgba(22,26,32,0.85); border: 1px solid var(--line); border-radius: 999px;
-  padding: 4px 9px 4px 7px; font-size: 11px; font-weight: 600; color: var(--text-dim);
-  pointer-events: auto; backdrop-filter: blur(3px); transition: border-color .15s ease, color .15s ease;
+  padding: 5px; font-size: 11px; font-weight: 600; color: var(--text-dim);
+  pointer-events: auto; backdrop-filter: blur(3px);
+  transition: border-color .15s ease, color .15s ease, padding .15s ease, background .15s ease;
 }
+.stage-label .status-dot { width: 9px; height: 9px; }
+.stage-label-expanded { padding: 5px 10px 5px 7px; background: rgba(22,26,32,0.95); }
 .stage-label:hover { color: var(--text); border-color: #46505d; }
 .stage-label-active { border-color: var(--copper); color: var(--copper-soft); }
 .stage-hint {
@@ -1115,13 +1211,14 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outl
 .stage-reset {
   position: absolute; top: 10px; right: 10px; background: rgba(22,26,32,0.85);
   border: 1px solid var(--line); color: var(--text-dim); border-radius: 7px; padding: 6px;
-  display: inline-flex;
+  display: inline-flex; z-index: 2;
 }
 .stage-reset:hover { color: var(--text); border-color: #46505d; }
-@media (max-width: 760px) { .stage-wrap { height: 280px; } }
+@media (max-width: 760px) { .stage-wrap { height: 300px; } .stage-caption { font-size: 12px; } }
 
 .opt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
 .empty-state { color: var(--text-dim); font-size: 13px; padding: 30px 0; grid-column: 1 / -1; text-align: center; }
+
 
 .opt-card {
   position: relative; text-align: left; background: var(--panel);
