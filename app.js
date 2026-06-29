@@ -29,7 +29,10 @@ import {
   Search,
   Gauge,
   FolderOpen,
-  Palette
+  Palette,
+  Minus,
+  Maximize2,
+  Minimize2
 } from "lucide-react";
 var DATA = {
   cpu: [
@@ -340,17 +343,71 @@ function buildCaseShell(dims, cabinet) {
     glass.rotation.y = Math.PI / 2;
     glass.position.set(w / 2 + 0.02, h / 2, 0);
     group.add(glass);
+    for (const fx of [-w / 2 + 0.4, w / 2 - 0.4]) {
+      for (const fz of [-d / 2 + 0.4, d / 2 - 0.4]) {
+        const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.18, 0.12, 10), stdMat(789775, { metalness: 0.1, roughness: 0.9 }));
+        foot.position.set(fx, 0.04, fz);
+        group.add(foot);
+      }
+    }
+    for (let i = 0; i < 10; i++) {
+      const vent = new THREE.Mesh(new THREE.BoxGeometry(w * 0.55, 0.02, 0.015), stdMat(329223, { opacity: 0.5 }));
+      vent.position.set(0, h * 0.18 + i * (h * 0.6) / 10, d / 2 - 0.02);
+      group.add(vent);
+    }
   }
+  return group;
+}
+function buildFanUnit(radius, accentColor, glow) {
+  const group = new THREE.Group();
+  const hub = new THREE.Mesh(new THREE.CylinderGeometry(radius * 0.22, radius * 0.24, 0.06, 16), stdMat(1645600, { metalness: 0.5, roughness: 0.4 }));
+  group.add(hub);
+  const bladeMat = stdMat(2303531, { metalness: 0.25, roughness: 0.5 });
+  const bladeCount = 7;
+  for (let i = 0; i < bladeCount; i++) {
+    const pivot = new THREE.Group();
+    pivot.rotation.y = i / bladeCount * Math.PI * 2;
+    const blade = new THREE.Mesh(new THREE.BoxGeometry(radius * 0.74, 0.022, radius * 0.3), bladeMat);
+    blade.position.set(radius * 0.4, 0, 0);
+    blade.rotation.x = 0.18;
+    pivot.add(blade);
+    group.add(pivot);
+  }
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.03, 8, 28), stdMat(2764599, { metalness: 0.5, roughness: 0.4 }));
+  rim.rotation.x = Math.PI / 2;
+  group.add(rim);
+  const accent = new THREE.Mesh(
+    new THREE.TorusGeometry(radius * 0.97, 0.012, 6, 28),
+    stdMat(accentColor, { emissive: glow ? accentColor : 0, emissiveIntensity: glow ? 0.7 : 0 })
+  );
+  accent.rotation.x = Math.PI / 2;
+  group.add(accent);
   return group;
 }
 function buildMotherboard(pos, mobo) {
   const group = new THREE.Group();
-  const plate = new THREE.Mesh(new THREE.BoxGeometry(0.1, 4.6, 4.4), stdMat(2047278, { roughness: 0.7, metalness: 0.1 }));
+  const plate = new THREE.Mesh(new THREE.BoxGeometry(0.1, 4.6, 4.4), stdMat(2047278, { roughness: 0.75, metalness: 0.05 }));
   plate.position.copy(pos);
   group.add(plate);
   const trim = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.18, 4.4), stdMat(13206090, { metalness: 0.6, roughness: 0.4 }));
   trim.position.set(pos.x, pos.y + 2.1, pos.z);
   group.add(trim);
+  const socket = new THREE.Mesh(new THREE.BoxGeometry(0.13, 1, 1), stdMat(1053199, { metalness: 0.6, roughness: 0.3 }));
+  socket.position.set(pos.x + 0.02, pos.y + 0.95, pos.z + 0.35);
+  group.add(socket);
+  for (let i = 0; i < 4; i++) {
+    const vrm = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.5, 0.07), stdMat(4015184, { metalness: 0.7, roughness: 0.35 }));
+    vrm.position.set(pos.x + 0.05, pos.y + 1.5, pos.z + 0.62 + i * 0.12);
+    group.add(vrm);
+  }
+  const chipset = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.4, 0.6), stdMat(4541527, { metalness: 0.6, roughness: 0.4 }));
+  chipset.position.set(pos.x + 0.03, pos.y - 0.9, pos.z - 0.4);
+  group.add(chipset);
+  for (const off of [0.95, 1.18]) {
+    const slot = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.06, 1.7), stdMat(1316635, { metalness: 0.4 }));
+    slot.position.set(pos.x + 0.08, pos.y + off, pos.z + 1);
+    group.add(slot);
+  }
   return group;
 }
 function buildCpu(pos, status) {
@@ -362,28 +419,34 @@ function buildCpu(pos, status) {
   group.add(m, cap);
   return group;
 }
+var COPPER_METAL = 11892015;
 function buildCooler(pos, cooler, dims, status) {
   const group = new THREE.Group();
-  const accent = stdMat(STATUS_HEX[status], { emissive: STATUS_HEX[status], emissiveIntensity: 0.5 });
   if (cooler.type === "Air") {
     const base = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.16, 0.95), stdMat(3159615, { metalness: 0.6 }));
     base.position.set(pos.x - 0.1, pos.y, pos.z);
     group.add(base);
     const heightU = cooler.height / 100 * 0.95;
-    for (let i = 0; i < 6; i++) {
-      const fin = new THREE.Mesh(new THREE.BoxGeometry(0.04, heightU, 0.82), stdMat(4541527, { metalness: 0.7, roughness: 0.3 }));
-      fin.position.set(pos.x - 0.1 + (i - 2.5) * 0.13, pos.y + heightU / 2 + 0.08, pos.z);
+    const finCount = 9;
+    for (let i = 0; i < finCount; i++) {
+      const fin = new THREE.Mesh(new THREE.BoxGeometry(0.035, heightU, 0.82), stdMat(4870492, { metalness: 0.75, roughness: 0.25 }));
+      fin.position.set(pos.x - 0.1 + (i - (finCount - 1) / 2) * 0.1, pos.y + heightU / 2 + 0.08, pos.z);
       group.add(fin);
     }
-    const fan = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.07, 16), accent);
-    fan.rotation.z = Math.PI / 2;
+    for (const hx of [-0.25, 0, 0.25]) {
+      const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, heightU * 0.92, 10), stdMat(COPPER_METAL, { metalness: 0.85, roughness: 0.3 }));
+      pipe.position.set(pos.x - 0.1 + hx, pos.y + heightU / 2 + 0.08, pos.z - 0.3);
+      group.add(pipe);
+    }
+    const fan = buildFanUnit(0.42, STATUS_HEX[status], true);
+    fan.rotation.x = Math.PI / 2;
     fan.position.set(pos.x - 0.1, pos.y + heightU / 2, pos.z + 0.5);
     group.add(fan);
   } else {
     const pump = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.22, 0.5), stdMat(2764599, { metalness: 0.6 }));
     pump.position.copy(pos);
     group.add(pump);
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.025, 8, 20), accent);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.025, 10, 24), stdMat(STATUS_HEX[status], { emissive: STATUS_HEX[status], emissiveIntensity: 0.5 }));
     ring.position.set(pos.x, pos.y + 0.12, pos.z);
     group.add(ring);
     const radLenU = cooler.radiator / 100 * 1;
@@ -392,7 +455,7 @@ function buildCooler(pos, cooler, dims, status) {
     radiator.position.copy(radPos);
     group.add(radiator);
     for (let i = -1; i <= 1; i += 2) {
-      const fan = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.06, 16), stdMat(3817543, { metalness: 0.5 }));
+      const fan = buildFanUnit(0.45, STATUS_HEX[status], false);
       fan.position.set(radPos.x, radPos.y - 0.12, radPos.z + i * (radLenU * 0.28));
       group.add(fan);
     }
@@ -402,7 +465,7 @@ function buildCooler(pos, cooler, dims, status) {
         new THREE.Vector3(pos.x + off * 1.5, pos.y + dims.h * 0.5, pos.z + 0.3),
         new THREE.Vector3(off, radPos.y - 0.05, radPos.z - radLenU * 0.3)
       ]);
-      const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 24, 0.035, 6, false), stdMat(1316635, { roughness: 0.8 }));
+      const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 28, 0.035, 8, false), stdMat(1316635, { roughness: 0.85 }));
       group.add(tube);
     });
   }
@@ -412,9 +475,14 @@ function buildRam(pos, ram, status) {
   const group = new THREE.Group();
   const color = ram.tier === "Enthusiast" || ram.tier === "High-End" ? 3818064 : 2896186;
   [-0.16, 0.16].forEach((off) => {
-    const stick = new THREE.Mesh(new THREE.BoxGeometry(0.07, 1, 0.46), stdMat(color, { metalness: 0.5 }));
+    const stick = new THREE.Mesh(new THREE.BoxGeometry(0.07, 1, 0.46), stdMat(color, { metalness: 0.55, roughness: 0.35 }));
     stick.position.set(pos.x + off, pos.y + 0.5, pos.z);
     group.add(stick);
+    for (const ry of [0.25, 0.55, 0.85]) {
+      const ridge = new THREE.Mesh(new THREE.BoxGeometry(0.073, 0.012, 0.46), stdMat(1316635, { metalness: 0.3 }));
+      ridge.position.set(pos.x + off, pos.y + ry, pos.z);
+      group.add(ridge);
+    }
     const led = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.06, 0.46), stdMat(STATUS_HEX[status], { emissive: STATUS_HEX[status], emissiveIntensity: 0.5 }));
     led.position.set(pos.x + off, pos.y + 1.02, pos.z);
     group.add(led);
@@ -424,14 +492,21 @@ function buildRam(pos, ram, status) {
 function buildGpu(pos, gpu, status) {
   const group = new THREE.Group();
   const lenU = gpu.length / 100;
-  const card = new THREE.Mesh(new THREE.BoxGeometry(0.45, 1.25, lenU), stdMat(2304048, { metalness: 0.5, roughness: 0.4 }));
-  card.position.set(pos.x, pos.y, pos.z - lenU / 2 + 0.35);
+  const cz = pos.z - lenU / 2 + 0.35;
+  const card = new THREE.Mesh(new THREE.BoxGeometry(0.45, 1.25, lenU), stdMat(2304048, { metalness: 0.55, roughness: 0.38 }));
+  card.position.set(pos.x, pos.y, cz);
   group.add(card);
+  const backplate = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.22, lenU * 0.97), stdMat(1448221, { metalness: 0.7, roughness: 0.3 }));
+  backplate.position.set(pos.x - 0.25, pos.y, cz);
+  group.add(backplate);
+  const bracket = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.2, 0.07), stdMat(1316635, { metalness: 0.5 }));
+  bracket.position.set(pos.x, pos.y, pos.z + 0.33);
+  group.add(bracket);
   const strip = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.05, lenU), stdMat(STATUS_HEX[status], { emissive: STATUS_HEX[status], emissiveIntensity: 0.6 }));
-  strip.position.set(pos.x, pos.y + 0.65, card.position.z);
+  strip.position.set(pos.x, pos.y + 0.65, cz);
   group.add(strip);
-  for (const fz of [card.position.z - lenU * 0.22, card.position.z + lenU * 0.22]) {
-    const fan = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.06, 14), stdMat(1711394, { metalness: 0.3 }));
+  for (const fz of [cz - lenU * 0.22, cz + lenU * 0.22]) {
+    const fan = buildFanUnit(0.27, STATUS_HEX[status], false);
     fan.rotation.x = Math.PI / 2;
     fan.position.set(pos.x + 0.26, pos.y, fz);
     group.add(fan);
@@ -460,30 +535,31 @@ function buildPsu(pos, psu, status) {
   const box = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.55, 1.1), stdMat(2106411, { metalness: 0.6 }));
   box.position.copy(pos);
   group.add(box);
-  const fan = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.05, 16), stdMat(2896186, { metalness: 0.4 }));
+  const fan = buildFanUnit(0.42, STATUS_HEX[status], true);
   fan.rotation.x = Math.PI / 2;
   fan.position.set(pos.x, pos.y + 0.28, pos.z);
   group.add(fan);
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.02, 8, 20), stdMat(STATUS_HEX[status], { emissive: STATUS_HEX[status], emissiveIntensity: 0.5 }));
-  ring.rotation.x = Math.PI / 2;
-  ring.position.copy(fan.position);
-  group.add(ring);
   return group;
 }
 function buildFans(pos, fansItem, status, dims) {
   const group = new THREE.Group();
   const count = Math.min(fansItem.count, 3);
-  const color = fansItem.argb ? STATUS_HEX[status] : 3817543;
+  const accentColor = fansItem.argb ? STATUS_HEX[status] : 4870492;
   for (let i = 0; i < count; i++) {
     const yOff = (i - (count - 1) / 2) * 1;
-    const fan = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.05, 16), stdMat(2501168, { metalness: 0.4 }));
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(1.02, 1.02, 0.06), stdMat(1842980, { metalness: 0.3, roughness: 0.7 }));
+    frame.position.set(pos.x, pos.y + yOff, pos.z - 0.05);
+    group.add(frame);
+    for (const corner of [[-0.46, -0.46], [0.46, -0.46], [-0.46, 0.46], [0.46, 0.46]]) {
+      const screw = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.04, 8), stdMat(1184791, { metalness: 0.6 }));
+      screw.rotation.x = Math.PI / 2;
+      screw.position.set(pos.x + corner[0], pos.y + yOff + corner[1], pos.z - 0.02);
+      group.add(screw);
+    }
+    const fan = buildFanUnit(0.46, accentColor, fansItem.argb);
     fan.rotation.x = Math.PI / 2;
-    fan.position.set(pos.x, pos.y + yOff, pos.z - 0.03);
+    fan.position.set(pos.x, pos.y + yOff, pos.z);
     group.add(fan);
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.018, 8, 20), stdMat(color, { emissive: fansItem.argb ? color : 0, emissiveIntensity: fansItem.argb ? 0.6 : 0 }));
-    ring.rotation.x = Math.PI / 2;
-    ring.position.copy(fan.position);
-    group.add(ring);
   }
   return group;
 }
@@ -613,6 +689,13 @@ function buildRig(selections, dims, issues) {
     if (cat.id === "paste") return;
     labels.push({ id: cat.id, pos, status, title: sel ? sel.name : `Choose ${cat.label.toLowerCase()}` });
   });
+  group.traverse((o) => {
+    if (o.isMesh) {
+      const op = o.material?.opacity ?? 1;
+      o.receiveShadow = true;
+      o.castShadow = op > 0.4;
+    }
+  });
   return { group, labels };
 }
 function disposeGroup(group) {
@@ -639,16 +722,32 @@ function BuildStage({ selections, activeCat, issues, onSelectCat }) {
     const mount = mountRef.current;
     if (!mount) return;
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(40, mount.clientWidth / mount.clientHeight, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(44, mount.clientWidth / mount.clientHeight, 0.1, 100);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(mount.clientWidth, mount.clientHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    if ("outputColorSpace" in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
+    else if ("outputEncoding" in renderer) renderer.outputEncoding = THREE.sRGBEncoding;
     mount.appendChild(renderer.domElement);
-    scene.add(new THREE.AmbientLight(16777215, 0.78));
-    const key = new THREE.DirectionalLight(16777215, 1.05);
+    scene.add(new THREE.AmbientLight(16777215, 0.6));
+    const key = new THREE.DirectionalLight(16777215, 1.4);
     key.position.set(6, 10, 8);
+    key.castShadow = true;
+    key.shadow.mapSize.set(1024, 1024);
+    key.shadow.camera.left = -8;
+    key.shadow.camera.right = 8;
+    key.shadow.camera.top = 8;
+    key.shadow.camera.bottom = -8;
+    key.shadow.camera.near = 1;
+    key.shadow.camera.far = 26;
+    key.shadow.bias = -15e-4;
+    key.shadow.radius = 3;
     scene.add(key);
-    const fill = new THREE.DirectionalLight(16777215, 0.4);
+    const fill = new THREE.DirectionalLight(16777215, 0.45);
     fill.position.set(-5, 6, 4);
     scene.add(fill);
     const rim = new THREE.PointLight(5232841, 0.85, 30);
@@ -658,11 +757,12 @@ function BuildStage({ selections, activeCat, issues, onSelectCat }) {
     warm.position.set(5, 2, 6);
     scene.add(warm);
     const ground = new THREE.Mesh(
-      new THREE.CircleGeometry(6.5, 40),
-      new THREE.MeshBasicMaterial({ color: 1448738, transparent: true, opacity: 0.55, side: THREE.DoubleSide })
+      new THREE.CircleGeometry(6.5, 48),
+      new THREE.MeshStandardMaterial({ color: 1448738, transparent: true, opacity: 0.7, roughness: 0.95, metalness: 0 })
     );
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = -0.02;
+    ground.receiveShadow = true;
     scene.add(ground);
     const groundRing = new THREE.Mesh(
       new THREE.RingGeometry(6.3, 6.5, 48),
@@ -680,7 +780,7 @@ function BuildStage({ selections, activeCat, issues, onSelectCat }) {
       rig,
       theta: 0.9,
       phi: 1.05,
-      radius: 11,
+      radius: 12.5,
       dragging: false,
       lastX: 0,
       lastY: 0,
@@ -732,7 +832,9 @@ function BuildStage({ selections, activeCat, issues, onSelectCat }) {
       if (idle && !state.dragging) state.theta += 22e-4;
       const focusFrac = ANCHOR_FRACTIONS[activeCatRef.current] || ANCHOR_FRACTIONS.cabinet;
       const dims = computeDims(selectionsRef.current.cabinet);
-      const desiredFocus = toLocal(dims, Math.min(focusFrac.x, 0.7), focusFrac.y, focusFrac.z);
+      const caseCenter = toLocal(dims, 0.5, 0.5, 0.5);
+      const anchorPoint = toLocal(dims, Math.min(focusFrac.x, 0.7), focusFrac.y, focusFrac.z);
+      const desiredFocus = caseCenter.clone().lerp(anchorPoint, 0.4);
       state.focusCurrent.lerp(desiredFocus, 0.06);
       const x = state.focusCurrent.x + state.radius * Math.sin(state.phi) * Math.sin(state.theta);
       const y = state.focusCurrent.y + state.radius * Math.cos(state.phi);
@@ -791,21 +893,39 @@ function BuildStage({ selections, activeCat, issues, onSelectCat }) {
     if (!state) return;
     state.theta = 0.9;
     state.phi = 1.05;
-    state.radius = 11;
+    state.radius = 12.5;
     state.lastInteraction = Date.now() - 5e3;
   }
+  function zoomBy(delta) {
+    const state = threeRef.current;
+    if (!state) return;
+    state.radius = Math.min(16, Math.max(5, state.radius + delta));
+    state.lastInteraction = Date.now();
+  }
+  const [expanded, setExpanded] = useState(false);
+  useEffect(() => {
+    const state = threeRef.current;
+    const mount = mountRef.current;
+    if (!state || !mount) return;
+    const id = requestAnimationFrame(() => {
+      state.camera.aspect = mount.clientWidth / mount.clientHeight;
+      state.camera.updateProjectionMatrix();
+      state.renderer.setSize(mount.clientWidth, mount.clientHeight);
+    });
+    return () => cancelAnimationFrame(id);
+  }, [expanded]);
   const [hoveredId, setHoveredId] = useState(null);
   const activeMeta = CATEGORY_MAP[activeCat];
   const ActiveIcon = activeMeta?.icon;
   const activeSel = selections[activeCat];
-  return /* @__PURE__ */ React.createElement("div", { className: "stage-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "stage-mount", ref: mountRef }), /* @__PURE__ */ React.createElement("div", { className: "stage-caption" }, ActiveIcon && /* @__PURE__ */ React.createElement(ActiveIcon, { size: 15 }), /* @__PURE__ */ React.createElement("span", { className: "stage-caption-cat" }, activeMeta?.label), /* @__PURE__ */ React.createElement("span", { className: "stage-caption-sep" }, "\\u00b7"), /* @__PURE__ */ React.createElement("span", { className: `stage-caption-name ${activeSel ? "" : "stage-caption-empty"}` }, activeSel ? activeSel.name : "Not selected yet")), /* @__PURE__ */ React.createElement("div", { className: "stage-labels" }, labels.filter((l) => l.visible).map((l) => {
-    const expanded = activeCat === l.id || hoveredId === l.id;
+  return /* @__PURE__ */ React.createElement(React.Fragment, null, expanded && /* @__PURE__ */ React.createElement("div", { className: "stage-backdrop", onClick: () => setExpanded(false) }), /* @__PURE__ */ React.createElement("div", { className: `stage-wrap ${expanded ? "stage-wrap-expanded" : ""}` }, /* @__PURE__ */ React.createElement("div", { className: "stage-mount", ref: mountRef }), /* @__PURE__ */ React.createElement("div", { className: "stage-caption" }, ActiveIcon && /* @__PURE__ */ React.createElement(ActiveIcon, { size: 15 }), /* @__PURE__ */ React.createElement("span", { className: "stage-caption-cat" }, activeMeta?.label), /* @__PURE__ */ React.createElement("span", { className: "stage-caption-sep" }, "\\u00b7"), /* @__PURE__ */ React.createElement("span", { className: `stage-caption-name ${activeSel ? "" : "stage-caption-empty"}` }, activeSel ? activeSel.name : "Not selected yet")), /* @__PURE__ */ React.createElement("div", { className: "stage-labels" }, labels.filter((l) => l.visible).map((l) => {
+    const expandedLabel = activeCat === l.id || hoveredId === l.id;
     return /* @__PURE__ */ React.createElement(
       "button",
       {
         key: l.id,
         type: "button",
-        className: `stage-label ${expanded ? "stage-label-expanded" : ""} ${activeCat === l.id ? "stage-label-active" : ""}`,
+        className: `stage-label ${expandedLabel ? "stage-label-expanded" : ""} ${activeCat === l.id ? "stage-label-active" : ""}`,
         style: { left: l.x, top: l.y },
         onClick: () => onSelectCat(l.id),
         onMouseEnter: () => setHoveredId(l.id),
@@ -813,9 +933,9 @@ function BuildStage({ selections, activeCat, issues, onSelectCat }) {
         title: l.title
       },
       /* @__PURE__ */ React.createElement(StatusDot, { level: l.status }),
-      expanded && /* @__PURE__ */ React.createElement("span", null, CATEGORY_MAP[l.id]?.short)
+      expandedLabel && /* @__PURE__ */ React.createElement("span", null, CATEGORY_MAP[l.id]?.short)
     );
-  })), hint && /* @__PURE__ */ React.createElement("div", { className: "stage-hint" }, "Drag to rotate \\u00b7 scroll to zoom"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "stage-reset", onClick: resetView, title: "Reset view" }, /* @__PURE__ */ React.createElement(RotateCcw, { size: 13 })));
+  })), hint && /* @__PURE__ */ React.createElement("div", { className: "stage-hint" }, "Drag to rotate \\u00b7 scroll or use +/\\u2212 to zoom"), /* @__PURE__ */ React.createElement("div", { className: "stage-controls" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "stage-ctrl-btn", onClick: () => zoomBy(-1.4), title: "Zoom in" }, /* @__PURE__ */ React.createElement(Plus, { size: 14 })), /* @__PURE__ */ React.createElement("button", { type: "button", className: "stage-ctrl-btn", onClick: () => zoomBy(1.4), title: "Zoom out" }, /* @__PURE__ */ React.createElement(Minus, { size: 14 })), /* @__PURE__ */ React.createElement("button", { type: "button", className: "stage-ctrl-btn", onClick: resetView, title: "Reset view" }, /* @__PURE__ */ React.createElement(RotateCcw, { size: 13 })), /* @__PURE__ */ React.createElement("button", { type: "button", className: "stage-ctrl-btn", onClick: () => setExpanded((v) => !v), title: expanded ? "Exit fullscreen" : "Expand" }, expanded ? /* @__PURE__ */ React.createElement(Minimize2, { size: 13 }) : /* @__PURE__ */ React.createElement(Maximize2, { size: 13 })))));
 }
 var THEMES = {
   circuit: {
@@ -1296,7 +1416,12 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outl
 .pill { padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--text-dim); font-size: 12px; font-weight: 500; }
 .pill-active { background: var(--copper); border-color: var(--copper); color: #1A1206; }
 
-.stage-wrap { position: relative; height: 400px; margin-bottom: 18px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: radial-gradient(circle at 50% 38%, #1d2531 0%, #12151b 65%, #0F1115 100%); }
+.stage-wrap { position: relative; height: 400px; margin-bottom: 18px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: radial-gradient(circle at 50% 38%, #1d2531 0%, #12151b 65%, #0F1115 100%); transition: none; }
+.stage-wrap-expanded {
+  position: fixed; inset: 64px 24px 24px 24px; height: auto; z-index: 45;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.55);
+}
+.stage-backdrop { position: fixed; inset: 0; background: rgba(8,9,11,0.72); z-index: 44; }
 .stage-mount { width: 100%; height: 100%; touch-action: none; cursor: grab; }
 .stage-mount:active { cursor: grabbing; }
 
@@ -1331,13 +1456,22 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outl
   font-size: 11px; color: var(--text-dim); background: rgba(22,26,32,0.8);
   padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line); pointer-events: none;
 }
-.stage-reset {
-  position: absolute; top: 10px; right: 10px; background: rgba(22,26,32,0.85);
-  border: 1px solid var(--line); color: var(--text-dim); border-radius: 7px; padding: 6px;
-  display: inline-flex; z-index: 2;
+.stage-controls {
+  position: absolute; top: 10px; right: 10px; z-index: 2;
+  display: flex; flex-direction: column; gap: 4px;
+  background: rgba(22,26,32,0.85); border: 1px solid var(--line); border-radius: 9px; padding: 4px;
 }
-.stage-reset:hover { color: var(--text); border-color: #46505d; }
-@media (max-width: 760px) { .stage-wrap { height: 300px; } .stage-caption { font-size: 12px; } }
+.stage-ctrl-btn {
+  background: transparent; border: none; color: var(--text-dim); border-radius: 6px; padding: 7px;
+  display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center;
+}
+.stage-ctrl-btn:hover { color: var(--text); background: var(--panel-2); }
+.stage-ctrl-btn + .stage-ctrl-btn { border-top: 1px solid var(--line); border-radius: 6px; }
+@media (max-width: 760px) {
+  .stage-wrap { height: 300px; }
+  .stage-wrap-expanded { inset: 56px 10px 10px 10px; }
+  .stage-caption { font-size: 12px; }
+}
 
 .opt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
 .empty-state { color: var(--text-dim); font-size: 13px; padding: 30px 0; grid-column: 1 / -1; text-align: center; }
