@@ -66,6 +66,45 @@
     border-left:2px solid var(--copper); padding-left:10px; margin-top:18px; max-width:580px;
   }
 
+  /* ---------- STAGE PANEL ---------- */
+  .stage{
+    border:1px solid var(--grid-line); border-radius:8px; overflow:hidden; margin-bottom:32px;
+    background:var(--ink-2);
+  }
+  .stage-tabs{ display:flex; border-bottom:1px solid var(--grid-line); }
+  .stage-tab{
+    flex:1; background:var(--ink-3); border:none; padding:14px; cursor:pointer;
+    font-family:var(--font-mono); font-size:0.78rem; letter-spacing:0.1em; color:var(--muted);
+    display:flex; align-items:center; justify-content:center; gap:8px; transition:background .15s, color .15s;
+  }
+  .stage-tab.active{ background:var(--copper); color:var(--ink); }
+  .stage-tab:not(.active):hover{ color:var(--paper); }
+  .stage-body{ padding:30px 28px; min-height:200px; }
+  .stage-panel h3{ font-size:1.1rem; margin-bottom:8px; }
+  .stage-hint{ font-family:var(--font-mono); font-size:0.78rem; color:var(--muted); margin-top:16px; max-width:480px; }
+
+  .platform-options{ display:flex; gap:12px; margin-top:16px; }
+  .platform-pill{
+    font-family:var(--font-mono); font-size:0.85rem; letter-spacing:0.03em;
+    padding:12px 26px; border-radius:6px; border:1px solid var(--grid-line); background:transparent;
+    color:var(--paper); cursor:pointer; transition:border-color .15s, background .15s;
+  }
+  .platform-pill:hover{ border-color:var(--muted); }
+  .platform-pill.active{ border-color:var(--copper); background:rgba(255,138,61,0.1); color:var(--copper); }
+
+  .carousel{ display:flex; align-items:center; gap:18px; justify-content:center; padding:20px 0; }
+  .carousel-arrow{
+    width:38px; height:38px; border-radius:50%; border:1px solid var(--grid-line); background:transparent;
+    color:var(--muted); cursor:pointer; font-size:1.1rem; display:flex; align-items:center; justify-content:center;
+    transition:border-color .15s, color .15s;
+  }
+  .carousel-arrow:hover{ border-color:var(--muted); color:var(--paper); }
+  .carousel-current{ display:flex; flex-direction:column; align-items:center; gap:10px; min-width:240px; }
+  .carousel-pn{ font-family:var(--font-mono); font-size:0.68rem; color:var(--copper); letter-spacing:0.1em; }
+
+  .section-heading{ display:flex; align-items:baseline; gap:14px; margin-bottom:4px; }
+  .section-heading h2{ font-size:1.15rem; }
+
   /* ---------- LEGEND ---------- */
   .legend{ display:flex; gap:22px; margin:28px 0 18px; flex-wrap:wrap; }
   .legend-item{ display:flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:0.78rem; color:var(--muted); }
@@ -212,8 +251,37 @@
   <div class="intro">
     <p class="eyebrow">DRAWING — RIG.001</p>
     <h1>Draw up your build.</h1>
-    <p>Every part below starts on its preferred pick. Tap any tile to open its picker — pick a brand, then a model, then confirm. The bottom panel checks every pairing live.</p>
+    <p>Every category starts empty. Use Platform to narrow CPU and motherboard to AMD or Intel, then step through every part in Components — or jump straight to one below in Your Build.</p>
     <p class="note">Prices shown are placeholder figures for layout, not live retailer prices. Wire up real pricing data whenever it's ready — nothing else here depends on it.</p>
+  </div>
+
+  <div class="stage">
+    <div class="stage-tabs">
+      <button type="button" class="stage-tab active" data-tab="platform">PLATFORM</button>
+      <button type="button" class="stage-tab" data-tab="components">COMPONENTS</button>
+    </div>
+    <div class="stage-body">
+      <div class="stage-panel" data-panel="platform">
+        <h3>Choose a platform</h3>
+        <div class="platform-options" id="platform-options">
+          <button type="button" class="platform-pill" data-platform="AMD">AMD</button>
+          <button type="button" class="platform-pill" data-platform="Intel">Intel</button>
+        </div>
+        <p class="stage-hint">This narrows CPU and motherboard choices to that ecosystem in the picker. It's a filter, not a commitment — you can switch any time, and it never overrides a part you've already picked.</p>
+      </div>
+      <div class="stage-panel" data-panel="components" style="display:none;">
+        <h3>Choose components</h3>
+        <p class="stage-hint" style="margin-top:0;">Step through every category here, or jump straight to one in "Your Build" below.</p>
+        <div class="carousel">
+          <button type="button" class="carousel-arrow" id="carousel-prev" aria-label="Previous category">‹</button>
+          <div class="carousel-current">
+            <span class="carousel-pn" id="carousel-pn">PN—01</span>
+            <button type="button" class="btn btn-primary" id="carousel-choose">CHOOSE CPU</button>
+          </div>
+          <button type="button" class="carousel-arrow" id="carousel-next" aria-label="Next category">›</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="legend">
@@ -222,6 +290,7 @@
     <span class="legend-item"><i class="dot dot-flag"></i>Flagged</span>
   </div>
 
+  <div class="section-heading"><h2>Your build</h2></div>
   <div class="build-grid" id="build-grid"></div>
 </div>
 
@@ -556,8 +625,9 @@ const CATALOG = {
 
 /* ======================= STATE ======================= */
 const STORAGE_KEY = 'buildprint.selections.v1';
-const state = { selections:{} };
+const state = { selections:{}, platform:null };
 const modalState = { catId:null, pendingId:null };
+let carouselIndex = 0;
 
 function getItem(catId, itemId){
   if(!itemId) return null;
@@ -567,16 +637,28 @@ function defaultSelections(){
   return {};
 }
 function inr(n){ return '₹'+Math.round(n).toLocaleString('en-IN'); }
+function platformOfSocket(socket){
+  if(socket==='AM5' || socket==='AM4') return 'AMD';
+  if(socket==='LGA1851' || socket==='LGA1700') return 'Intel';
+  return null;
+}
+function getItemsForCategory(catId){
+  let items = CATALOG[catId];
+  if(state.platform && (catId==='cpu' || catId==='motherboard')){
+    items = items.filter(i=>platformOfSocket(i.attrs.socket)===state.platform);
+  }
+  return items;
+}
 function getBrandsForCategory(catId){
   const seen = new Set(); const brands=[];
-  CATALOG[catId].forEach(i=>{ if(!seen.has(i.brand)){ seen.add(i.brand); brands.push(i.brand); } });
+  getItemsForCategory(catId).forEach(i=>{ if(!seen.has(i.brand)){ seen.add(i.brand); brands.push(i.brand); } });
   return brands;
 }
 
 /* ---- persistence ---- */
 function saveToStorage(){
   try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.selections));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({selections:state.selections, platform:state.platform}));
     const ind = document.getElementById('autosave-indicator');
     if(ind) ind.textContent = 'AUTOSAVED · '+new Date().toLocaleTimeString('en-IN',{hour12:false});
   }catch(e){ console.warn('Could not save build', e); }
@@ -584,7 +666,10 @@ function saveToStorage(){
 function loadFromStorage(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    if(parsed && parsed.selections) return parsed;
+    return {selections:parsed, platform:null}; // legacy format, just a selections object
   }catch(e){ return null; }
 }
 function loadFromURL(){
@@ -694,7 +779,7 @@ function renderModalBody(){
 
   const body = document.getElementById('modal-body');
   body.innerHTML = brands.map(brand=>{
-    const items = CATALOG[catId].filter(i=>i.brand===brand);
+    const items = getItemsForCategory(catId).filter(i=>i.brand===brand);
     const isOpen = brand===activeBrand;
     const optionsHtml = items.map(item=>{
       const specsStr = Object.entries(item.specs).map(([k,v])=>`${k}: ${v}`).join(' · ');
@@ -748,12 +833,59 @@ document.addEventListener('keydown', e=>{
   if(e.key==='Escape' && document.getElementById('modal-overlay').classList.contains('open')) closeModal();
 });
 
+/* ======================= STAGE: TABS / PLATFORM / CAROUSEL ======================= */
+document.querySelectorAll('.stage-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.stage-tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.stage-panel').forEach(p=>{
+      p.style.display = (p.dataset.panel===tab.dataset.tab) ? 'block' : 'none';
+    });
+  });
+});
+
+function renderPlatformPills(){
+  document.querySelectorAll('.platform-pill').forEach(p=>{
+    p.classList.toggle('active', p.dataset.platform===state.platform);
+  });
+}
+document.getElementById('platform-options').addEventListener('click', e=>{
+  const pill = e.target.closest('.platform-pill');
+  if(!pill) return;
+  const val = pill.dataset.platform;
+  state.platform = (state.platform===val) ? null : val;
+  saveToStorage();
+  renderPlatformPills();
+});
+
+function renderCarousel(){
+  const meta = CATEGORY_META[carouselIndex];
+  document.getElementById('carousel-pn').textContent = meta.pn;
+  document.getElementById('carousel-choose').textContent = 'CHOOSE ' + meta.label.toUpperCase();
+}
+document.getElementById('carousel-prev').addEventListener('click', ()=>{
+  carouselIndex = (carouselIndex - 1 + CATEGORY_META.length) % CATEGORY_META.length;
+  renderCarousel();
+});
+document.getElementById('carousel-next').addEventListener('click', ()=>{
+  carouselIndex = (carouselIndex + 1) % CATEGORY_META.length;
+  renderCarousel();
+});
+document.getElementById('carousel-choose').addEventListener('click', ()=>{
+  openModal(CATEGORY_META[carouselIndex].id);
+});
+
 /* ======================= SELECTION / DOCK ======================= */
 function selectItem(catId, itemId){
   state.selections[catId] = itemId;
   saveToStorage();
   renderBuildGrid();
   renderDock();
+  const idx = CATEGORY_META.findIndex(c=>c.id===catId);
+  if(idx===carouselIndex){
+    carouselIndex = (carouselIndex + 1) % CATEGORY_META.length;
+    renderCarousel();
+  }
 }
 
 function renderDock(){
@@ -805,10 +937,12 @@ document.getElementById('btn-share').addEventListener('click', e=>{
 });
 
 document.getElementById('btn-reset').addEventListener('click', ()=>{
-  if(!confirm('Reset this build back to the preferred defaults? This clears your current picks.')) return;
+  if(!confirm('Reset this build back to empty? This clears your current picks and platform filter.')) return;
   state.selections = defaultSelections();
+  state.platform = null;
   saveToStorage();
   history.replaceState(null, '', location.pathname);
+  renderPlatformPills();
   renderAll();
 });
 
@@ -856,9 +990,14 @@ function init(){
   const urlSel = loadFromURL();
   if(urlSel){
     state.selections = urlSel;
+    state.platform = null;
   } else {
-    state.selections = loadFromStorage() || defaultSelections();
+    const loaded = loadFromStorage() || {selections: defaultSelections(), platform: null};
+    state.selections = loaded.selections;
+    state.platform = loaded.platform || null;
   }
+  renderPlatformPills();
+  renderCarousel();
   renderAll();
 }
 init();
