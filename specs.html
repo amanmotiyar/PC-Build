@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BUILDPRINT — Your build, full spec sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B1E33; --ink-2:#122B47; --ink-3:#0E2538;
+    --paper:#EAF2F8; --muted:#7E9AB5; --copper:#FF8A3D; --cyan:#5FD4D0;
+    --grid-line: rgba(143,180,212,0.10); --redline:#FF6A5C;
+    --font-display:'Space Grotesk', sans-serif;
+    --font-body:'Inter', sans-serif;
+    --font-mono:'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--ink); color:var(--paper); font-family:var(--font-body); line-height:1.6;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size:42px 42px;
+  }
+  a{color:inherit; text-decoration:none;}
+  :focus-visible{ outline:2px solid var(--copper); outline-offset:3px; border-radius:2px; }
+  h1,h2,h3{font-family:var(--font-display); font-weight:600; color:var(--paper);}
+  button{ font:inherit; color:inherit; }
+
+  .eyebrow{
+    font-family:var(--font-mono); font-size:0.7rem; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--cyan); display:flex; align-items:center; gap:9px;
+  }
+  .eyebrow::before{ content:""; width:6px; height:6px; background:var(--cyan); border-radius:50%; box-shadow:0 0 0 3px rgba(95,212,208,0.18); }
+
+  header{
+    position:sticky; top:0; z-index:60;
+    background:rgba(11,30,51,0.92); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--grid-line);
+  }
+  nav{ display:flex; align-items:center; justify-content:space-between; padding:16px 28px; max-width:1280px; margin:0 auto; }
+  .logo{ display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; font-size:1rem; }
+  .nav-actions{ display:flex; gap:10px; }
+
+  .wrap{ max-width:1280px; margin:0 auto; padding:0 28px 80px; }
+  .hero{ padding:36px 0 8px; display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; }
+  .hero h1{ font-size:clamp(1.6rem,3vw,2.1rem); margin:12px 0 6px; }
+  .hero p{ color:var(--muted); font-size:0.92rem; max-width:480px; }
+  .hero-figures{ display:flex; gap:26px; flex-wrap:wrap; }
+  .hero-figure .label{ font-family:var(--font-mono); font-size:0.62rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; }
+  .hero-figure .value{ font-family:var(--font-mono); font-size:1.3rem; margin-top:3px; }
+
+  .btn{
+    font-family:var(--font-mono); font-size:0.78rem; letter-spacing:0.02em; padding:10px 16px;
+    border-radius:3px; cursor:pointer; border:1px solid var(--grid-line); background:transparent; color:var(--paper);
+    transition:border-color .15s, background .15s;
+  }
+  .btn:hover{ border-color:var(--muted); }
+  .btn-primary{ background:var(--copper); border-color:var(--copper); color:var(--ink); }
+  .btn-primary:hover{ background:#ffa05f; }
+
+  .flags-banner{
+    margin-top:18px; padding:14px 18px; border-radius:6px; border:1px solid var(--grid-line);
+    font-family:var(--font-mono); font-size:0.82rem;
+  }
+  .flags-banner.has-flags{ border-color:var(--redline); color:var(--redline); background:rgba(255,106,92,0.06); }
+  .flags-banner.is-ok{ border-color:var(--cyan); color:var(--cyan); background:rgba(95,212,208,0.06); }
+  .flags-banner ul{ margin-top:8px; padding-left:18px; color:var(--paper); }
+  .flags-banner li{ margin-bottom:4px; }
+
+  /* ---------- ISOMETRIC RIG DIAGRAM ---------- */
+  .rig-section{ margin-top:40px; display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:center; }
+  .rig-stage{
+    perspective:1400px; height:480px; display:flex; align-items:center; justify-content:center;
+    position:relative;
+  }
+  .rig-3d{
+    width:280px; height:340px; position:relative;
+    transform-style:preserve-3d;
+    transform:rotateX(52deg) rotateZ(-38deg);
+  }
+  .iso-part{
+    position:absolute; background:var(--ink-2); border:1px solid var(--muted);
+    box-shadow:0 0 0 1px rgba(0,0,0,0.2), 4px 4px 14px rgba(0,0,0,0.35);
+  }
+  .iso-part.preferred-edge{ border-color:var(--copper); }
+  .iso-floor{ width:280px; height:340px; left:0; top:0; background:var(--ink-3); border-color:var(--grid-line); transform:translateZ(0px); }
+  .iso-mobo{ width:200px; height:240px; left:40px; top:50px; background:var(--ink-2); transform:translateZ(6px); }
+  .iso-cpu{ width:46px; height:46px; left:108px; top:90px; background:var(--copper); border-color:var(--copper); transform:translateZ(22px); box-shadow:0 0 16px rgba(255,138,61,0.5); }
+  .iso-cooler{ width:64px; height:64px; left:98px; top:80px; background:transparent; border:1.5px dashed var(--cyan); transform:translateZ(40px); border-radius:50%; }
+  .iso-ram{ width:14px; height:90px; left:175px; top:75px; background:var(--ink-3); transform:translateZ(20px); }
+  .iso-ram2{ width:14px; height:90px; left:193px; top:75px; background:var(--ink-3); transform:translateZ(20px); }
+  .iso-gpu{ width:190px; height:46px; left:45px; top:210px; background:var(--ink-3); transform:translateZ(26px); }
+  .iso-storage{ width:50px; height:50px; left:230px; top:200px; background:var(--ink-3); transform:translateZ(10px); }
+  .iso-psu{ width:120px; height:60px; left:80px; top:300px; background:var(--ink-3); transform:translateZ(2px); }
+
+  .callout-layer{ position:absolute; inset:0; pointer-events:none; }
+  .callout{
+    position:absolute; font-family:var(--font-mono); font-size:0.72rem; white-space:nowrap;
+    color:var(--paper); display:flex; align-items:center; gap:8px;
+  }
+  .callout::before{ content:""; width:36px; height:1px; background:var(--copper); display:inline-block; }
+  .callout .callout-label{ color:var(--copper); font-size:0.64rem; letter-spacing:0.06em; margin-right:4px; }
+  .callout.flip::before{ order:2; }
+  .callout.flip{ flex-direction:row-reverse; }
+
+  .rig-caption{ font-family:var(--font-mono); font-size:0.76rem; color:var(--muted); text-align:center; margin-top:10px; }
+
+  .specs-panel{ }
+  .specs-row{ padding:14px 0; border-bottom:1px solid var(--grid-line); }
+  .specs-row.empty .specs-row-name{ color:var(--muted); }
+  .specs-row-cat{ font-family:var(--font-mono); font-size:0.66rem; color:var(--copper); letter-spacing:0.08em; }
+  .specs-row-name{ font-family:var(--font-display); font-size:1rem; margin:6px 0 6px; }
+  .specs-row-specs{ font-family:var(--font-mono); font-size:0.78rem; color:var(--muted); }
+  .specs-row-price{ font-family:var(--font-mono); font-size:0.86rem; color:var(--paper); margin-top:6px; }
+
+  @media (max-width:900px){
+    .rig-section{ grid-template-columns:1fr; }
+    .rig-stage{ height:380px; }
+  }
+
+  /* ---------- PRINT ---------- */
+  #print-sheet{ display:none; }
+  body.printing > *:not(#print-sheet){ display:none !important; }
+  body.printing #print-sheet{ display:block !important; }
+  #print-sheet{ font-family:'JetBrains Mono', monospace; color:#000; background:#fff; padding:30px; max-width:900px; margin:0 auto; }
+  #print-sheet h1{ font-family:'Space Grotesk', sans-serif; color:#000; font-size:1.4rem; margin-bottom:4px; }
+  #print-sheet table{ width:100%; border-collapse:collapse; margin:18px 0; font-size:0.82rem; }
+  #print-sheet th, #print-sheet td{ border:1px solid #999; padding:8px 10px; text-align:left; vertical-align:top; }
+  #print-sheet .note{ font-size:0.78rem; color:#555; margin-top:14px; }
+  #print-sheet ul{ padding-left:18px; margin:8px 0; }
+
+  .empty-state{ padding:80px 0; text-align:center; }
+  .empty-state p{ color:var(--muted); margin-top:10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <a class="logo" href="index.html">
+      <svg width="20" height="20" viewBox="0 0 22 22">
+        <polygon points="11,1 20,6 20,16 11,21 2,16 2,6" fill="none" stroke="#FF8A3D" stroke-width="1.4"/>
+        <circle cx="11" cy="11" r="2.4" fill="#FF8A3D"/>
+      </svg>
+      BUILDPRINT
+    </a>
+    <div class="nav-actions">
+      <a class="btn" href="builder.html">← Back to builder</a>
+    </div>
+  </nav>
+</header>
+
+<div class="wrap" id="page-content">
+  <div class="hero">
+    <div>
+      <p class="eyebrow">RIG.001 — REVIEW</p>
+      <h1>Your build, full spec sheet.</h1>
+      <p>Every part you picked, laid out on the rig and listed in full below.</p>
+    </div>
+    <div class="hero-figures">
+      <div class="hero-figure"><div class="label">Total</div><div class="value" id="hero-total">₹0</div></div>
+      <div class="hero-figure"><div class="label">Est. draw</div><div class="value" id="hero-watt">—</div></div>
+      <div class="hero-figure"><div class="label">Status</div><div class="value" id="hero-status">—</div></div>
+    </div>
+  </div>
+
+  <div class="flags-banner" id="flags-banner"></div>
+
+  <div class="rig-section">
+    <div>
+      <div class="rig-stage">
+        <div class="rig-3d">
+          <div class="iso-part iso-floor"></div>
+          <div class="iso-part iso-mobo"></div>
+          <div class="iso-part iso-gpu"></div>
+          <div class="iso-part iso-ram"></div>
+          <div class="iso-part iso-ram2"></div>
+          <div class="iso-part iso-storage"></div>
+          <div class="iso-part iso-psu"></div>
+          <div class="iso-part iso-cooler"></div>
+          <div class="iso-part iso-cpu preferred-edge"></div>
+        </div>
+        <div class="callout-layer" id="callout-layer"></div>
+      </div>
+      <p class="rig-caption" id="rig-caption">Cabinet — not selected</p>
+    </div>
+
+    <div class="specs-panel" id="specs-panel"></div>
+  </div>
+</div>
+
+<div class="empty-state" id="empty-state" style="display:none;">
+  <h2>No build found here yet.</h2>
+  <p>Go back to the builder and pick a few parts — this page reads whatever you've selected there.</p>
+  <p style="margin-top:18px;"><a class="btn btn-primary" href="builder.html">Go to builder</a></p>
+</div>
+
+<div id="print-sheet"></div>
+
+<script>
+/* ======================= CATALOG (read-only mirror of builder.html) ======================= */
+const CATEGORY_META = [
+  {id:'cpu', label:'CPU', pn:'PN—01'},
+  {id:'cooler', label:'CPU Cooler', pn:'PN—02'},
+  {id:'gpu', label:'GPU', pn:'PN—03'},
+  {id:'motherboard', label:'Motherboard', pn:'PN—04'},
+  {id:'ram', label:'RAM', pn:'PN—05'},
+  {id:'storage', label:'Storage', pn:'PN—06'},
+  {id:'psu', label:'PSU', pn:'PN—07'},
+  {id:'cabinet', label:'Cabinet', pn:'PN—08'},
+];
+
+const CATALOG = {
+  cpu: [
+    {id:'cpu-9800x3d', brand:'AMD', name:'AMD Ryzen 7 9800X3D', price:42990, specs:{'Cores':'8C / 16T','Boost':'Up to 5.2GHz','Cache':'96MB 3D V-Cache','TDP':'120W'}, attrs:{socket:'AM5', tdp:120}},
+    {id:'cpu-9950x3d', brand:'AMD', name:'AMD Ryzen 9 9950X3D', price:84990, specs:{'Cores':'16C / 32T','Boost':'Up to 5.7GHz','Cache':'144MB 3D V-Cache','TDP':'170W'}, attrs:{socket:'AM5', tdp:170}},
+    {id:'cpu-9900x3d', brand:'AMD', name:'AMD Ryzen 9 9900X3D', price:58990, specs:{'Cores':'12C / 24T','Boost':'Up to 5.5GHz','Cache':'128MB 3D V-Cache','TDP':'120W'}, attrs:{socket:'AM5', tdp:120}},
+    {id:'cpu-9700x', brand:'AMD', name:'AMD Ryzen 7 9700X', price:32990, specs:{'Cores':'8C / 16T','Boost':'Up to 5.5GHz','Cache':'32MB Cache','TDP':'65W'}, attrs:{socket:'AM5', tdp:65}},
+    {id:'cpu-9600x', brand:'AMD', name:'AMD Ryzen 5 9600X', price:22990, specs:{'Cores':'6C / 12T','Boost':'Up to 5.4GHz','Cache':'32MB Cache','TDP':'65W'}, attrs:{socket:'AM5', tdp:65}},
+    {id:'cpu-9600', brand:'AMD', name:'AMD Ryzen 5 9600', price:19990, specs:{'Cores':'6C / 12T','Boost':'Up to 5.1GHz','Cache':'32MB Cache','TDP':'65W'}, attrs:{socket:'AM5', tdp:65}},
+    {id:'cpu-ultra9-285k', brand:'Intel', name:'Intel Core Ultra 9 285K', price:58990, specs:{'Cores':'24C (8P+16E) / 24T','Boost':'Up to 5.7GHz','Cache':'36MB Cache','TDP':'125W (PL2 250W)'}, attrs:{socket:'LGA1851', tdp:125}},
+    {id:'cpu-ultra7-265k', brand:'Intel', name:'Intel Core Ultra 7 265K', price:38990, specs:{'Cores':'20C (8P+12E) / 20T','Boost':'Up to 5.5GHz','Cache':'30MB Cache','TDP':'125W'}, attrs:{socket:'LGA1851', tdp:125}},
+    {id:'cpu-ultra5-245k', brand:'Intel', name:'Intel Core Ultra 5 245K', price:27990, specs:{'Cores':'14C (6P+8E) / 14T','Boost':'Up to 5.2GHz','Cache':'24MB Cache','TDP':'125W'}, attrs:{socket:'LGA1851', tdp:125}},
+    {id:'cpu-i9-14900k', brand:'Intel', name:'Intel Core i9-14900K', price:52990, specs:{'Cores':'24C (8P+16E) / 32T','Boost':'Up to 6.0GHz','Cache':'36MB Cache','TDP':'125W (PL2 253W)'}, attrs:{socket:'LGA1700', tdp:125}},
+    {id:'cpu-i7-14700k', brand:'Intel', name:'Intel Core i7-14700K', price:34990, specs:{'Cores':'20C (8P+12E) / 28T','Boost':'Up to 5.6GHz','Cache':'33MB Cache','TDP':'125W'}, attrs:{socket:'LGA1700', tdp:125}},
+    {id:'cpu-i5-14600k', brand:'Intel', name:'Intel Core i5-14600K', price:24990, specs:{'Cores':'14C (6P+8E) / 20T','Boost':'Up to 5.3GHz','Cache':'24MB Cache','TDP':'125W'}, attrs:{socket:'LGA1700', tdp:125}},
+    {id:'cpu-i5-13400f', brand:'Intel', name:'Intel Core i5-13400F', price:14990, specs:{'Cores':'10C (6P+4E) / 16T','Boost':'Up to 4.6GHz','Cache':'20MB Cache','TDP':'65W'}, attrs:{socket:'LGA1700', tdp:65}},
+  ],
+  cooler: [
+    {id:'cool-phantom-spirit', brand:'Thermalright', name:'Thermalright Phantom Spirit 120 SE', price:3299, specs:{'Type':'Dual tower air','Lighting':'ARGB','Height':'158mm'}, attrs:{sockets:['AM5','AM4','LGA1851','LGA1700']}},
+    {id:'cool-ag620g2', brand:'DeepCool', name:'DeepCool AG620 G2', price:4199, specs:{'Type':'Dual tower air','Lighting':'ARGB','Height':'160mm'}, attrs:{sockets:['AM5','AM4','LGA1851','LGA1700']}},
+    {id:'cool-h150i', brand:'Corsair', name:'Corsair iCUE LINK H150i', price:16999, specs:{'Type':'360mm AIO liquid','Lighting':'ARGB','Radiator':'360mm'}, attrs:{sockets:['AM5','AM4','LGA1851','LGA1700']}},
+    {id:'cool-hyper212', brand:'Cooler Master', name:'Cooler Master Hyper 212 (legacy bracket)', price:2499, specs:{'Type':'Single tower air','Lighting':'None','Height':'159mm'}, attrs:{sockets:['AM4','LGA1700']}},
+  ],
+  gpu: [
+    {id:'gpu-5090-asus-astral', brand:'ASUS', name:'ASUS ROG Astral RTX 5090', price:219990, specs:{'Memory':'32GB GDDR7','Length':'357mm','TDP':'575W'}, attrs:{lengthMm:357, wattage:575}},
+    {id:'gpu-5090-msi-suprim', brand:'MSI', name:'MSI Suprim Liquid RTX 5090', price:229990, specs:{'Memory':'32GB GDDR7','Length':'359mm','TDP':'575W'}, attrs:{lengthMm:359, wattage:575}},
+    {id:'gpu-5090-giga-master', brand:'Gigabyte', name:'Gigabyte Aorus Master RTX 5090', price:214990, specs:{'Memory':'32GB GDDR7','Length':'346mm','TDP':'575W'}, attrs:{lengthMm:346, wattage:575}},
+    {id:'gpu-5080-asus-tuf', brand:'ASUS', name:'ASUS TUF Gaming RTX 5080', price:109990, specs:{'Memory':'16GB GDDR7','Length':'346mm','TDP':'360W'}, attrs:{lengthMm:346, wattage:360}},
+    {id:'gpu-5080-msi-trio', brand:'MSI', name:'MSI Gaming Trio OC RTX 5080', price:112990, specs:{'Memory':'16GB GDDR7','Length':'338mm','TDP':'360W'}, attrs:{lengthMm:338, wattage:360}},
+    {id:'gpu-5080-giga-oc', brand:'Gigabyte', name:'Gigabyte Gaming OC RTX 5080', price:107990, specs:{'Memory':'16GB GDDR7','Length':'332mm','TDP':'360W'}, attrs:{lengthMm:332, wattage:360}},
+    {id:'gpu-tuf', brand:'ASUS', name:'ASUS TUF Gaming RTX 5070 Ti', price:89990, specs:{'Memory':'16GB GDDR7','Length':'336mm','TDP':'300W'}, attrs:{lengthMm:336, wattage:300}},
+    {id:'gpu-msi-trio', brand:'MSI', name:'MSI Gaming Trio OC RTX 5070 Ti', price:91990, specs:{'Memory':'16GB GDDR7','Length':'338mm','TDP':'300W'}, attrs:{lengthMm:338, wattage:300}},
+    {id:'gpu-giga-oc', brand:'Gigabyte', name:'Gigabyte Gaming OC RTX 5070 Ti', price:87990, specs:{'Memory':'16GB GDDR7','Length':'332mm','TDP':'300W'}, attrs:{lengthMm:332, wattage:300}},
+    {id:'gpu-ventus3x', brand:'MSI', name:'MSI Ventus 3X RTX 5070 Ti', price:84990, specs:{'Memory':'16GB GDDR7','Length':'305mm','TDP':'285W'}, attrs:{lengthMm:305, wattage:285}},
+    {id:'gpu-zotac-trinity', brand:'Zotac', name:'Zotac Trinity RTX 5070 Ti', price:82990, specs:{'Memory':'16GB GDDR7','Length':'318mm','TDP':'285W'}, attrs:{lengthMm:318, wattage:285}},
+    {id:'gpu-5070-asus-prime', brand:'ASUS', name:'ASUS Prime RTX 5070', price:64990, specs:{'Memory':'12GB GDDR7','Length':'301mm','TDP':'250W'}, attrs:{lengthMm:301, wattage:250}},
+    {id:'gpu-5070-msi-ventus2x', brand:'MSI', name:'MSI Ventus 2X OC RTX 5070', price:62990, specs:{'Memory':'12GB GDDR7','Length':'282mm','TDP':'250W'}, attrs:{lengthMm:282, wattage:250}},
+    {id:'gpu-5070-giga-wf', brand:'Gigabyte', name:'Gigabyte Windforce RTX 5070', price:61990, specs:{'Memory':'12GB GDDR7','Length':'276mm','TDP':'250W'}, attrs:{lengthMm:276, wattage:250}},
+    {id:'gpu-5060ti-asus-dual', brand:'ASUS', name:'ASUS Dual RTX 5060 Ti', price:44990, specs:{'Memory':'16GB GDDR7','Length':'268mm','TDP':'180W'}, attrs:{lengthMm:268, wattage:180}},
+    {id:'gpu-5060ti-msi-gaming', brand:'MSI', name:'MSI Gaming X RTX 5060 Ti', price:46990, specs:{'Memory':'16GB GDDR7','Length':'280mm','TDP':'180W'}, attrs:{lengthMm:280, wattage:180}},
+    {id:'gpu-5060ti-zotac-twin', brand:'Zotac', name:'Zotac Twin Edge RTX 5060 Ti', price:42990, specs:{'Memory':'16GB GDDR7','Length':'254mm','TDP':'180W'}, attrs:{lengthMm:254, wattage:180}},
+    {id:'gpu-5060-giga-eagle', brand:'Gigabyte', name:'Gigabyte Eagle RTX 5060', price:32990, specs:{'Memory':'8GB GDDR7','Length':'247mm','TDP':'145W'}, attrs:{lengthMm:247, wattage:145}},
+    {id:'gpu-5060-zotac-twin', brand:'Zotac', name:'Zotac Twin Edge RTX 5060', price:30990, specs:{'Memory':'8GB GDDR7','Length':'224mm','TDP':'145W'}, attrs:{lengthMm:224, wattage:145}},
+    {id:'gpu-5060-asus-dual', brand:'ASUS', name:'ASUS Dual RTX 5060', price:33990, specs:{'Memory':'8GB GDDR7','Length':'242mm','TDP':'145W'}, attrs:{lengthMm:242, wattage:145}},
+    {id:'gpu-9070xt-asus-tuf', brand:'ASUS', name:'ASUS TUF Gaming RX 9070 XT', price:79990, specs:{'Memory':'16GB GDDR6','Length':'320mm','TDP':'304W'}, attrs:{lengthMm:320, wattage:304}},
+    {id:'gpu-9070xt-sapphire-pulse', brand:'Sapphire', name:'Sapphire Pulse RX 9070 XT', price:76990, specs:{'Memory':'16GB GDDR6','Length':'308mm','TDP':'304W'}, attrs:{lengthMm:308, wattage:304}},
+    {id:'gpu-9070xt-xfx-swift', brand:'XFX', name:'XFX Swift RX 9070 XT', price:77990, specs:{'Memory':'16GB GDDR6','Length':'318mm','TDP':'304W'}, attrs:{lengthMm:318, wattage:304}},
+    {id:'gpu-9070-sapphire-pulse', brand:'Sapphire', name:'Sapphire Pulse RX 9070', price:64990, specs:{'Memory':'16GB GDDR6','Length':'300mm','TDP':'220W'}, attrs:{lengthMm:300, wattage:220}},
+    {id:'gpu-9070-powercolor-reaper', brand:'PowerColor', name:'PowerColor Reaper RX 9070', price:62990, specs:{'Memory':'16GB GDDR6','Length':'295mm','TDP':'220W'}, attrs:{lengthMm:295, wattage:220}},
+    {id:'gpu-9070-asus-prime', brand:'ASUS', name:'ASUS Prime RX 9070', price:65990, specs:{'Memory':'16GB GDDR6','Length':'305mm','TDP':'220W'}, attrs:{lengthMm:305, wattage:220}},
+    {id:'gpu-9060xt-asus-dual', brand:'ASUS', name:'ASUS Dual RX 9060 XT', price:38990, specs:{'Memory':'16GB GDDR6','Length':'242mm','TDP':'150W'}, attrs:{lengthMm:242, wattage:150}},
+    {id:'gpu-9060xt-sapphire-pulse', brand:'Sapphire', name:'Sapphire Pulse RX 9060 XT', price:36990, specs:{'Memory':'16GB GDDR6','Length':'250mm','TDP':'150W'}, attrs:{lengthMm:250, wattage:150}},
+    {id:'gpu-9060xt-powercolor-hellhound', brand:'PowerColor', name:'PowerColor Hellhound RX 9060 XT', price:37990, specs:{'Memory':'16GB GDDR6','Length':'255mm','TDP':'150W'}, attrs:{lengthMm:255, wattage:150}},
+  ],
+  motherboard: [
+    {id:'mobo-msi-tomahawk', brand:'MSI', name:'MSI MAG B650 Tomahawk WiFi', price:18999, specs:{'Chipset':'B650','Form':'ATX','WiFi':'Yes','PCIe':'Gen5 ready','BIOS Flashback':'Yes'}, attrs:{socket:'AM5', maxRamSpeed:6400, formFactor:'ATX'}},
+    {id:'mobo-msi-z890-tomahawk', brand:'MSI', name:'MSI MAG Z890 Tomahawk WiFi', price:24999, specs:{'Chipset':'Z890','Form':'ATX','WiFi':'Yes','PCIe':'Gen5 ready','BIOS Flashback':'Yes'}, attrs:{socket:'LGA1851', maxRamSpeed:7200, formFactor:'ATX'}},
+    {id:'mobo-msi-b760-pro', brand:'MSI', name:'MSI PRO B760M-A WiFi', price:12999, specs:{'Chipset':'B760','Form':'Micro-ATX','WiFi':'Yes','PCIe':'Gen4','BIOS Flashback':'Yes'}, attrs:{socket:'LGA1700', maxRamSpeed:5600, formFactor:'Micro-ATX'}},
+    {id:'mobo-asus-tuf', brand:'ASUS', name:'ASUS TUF Gaming B650-Plus WiFi', price:17499, specs:{'Chipset':'B650','Form':'ATX','WiFi':'Yes','PCIe':'Gen4','BIOS Flashback':'Yes'}, attrs:{socket:'AM5', maxRamSpeed:6000, formFactor:'ATX'}},
+    {id:'mobo-asus-z890-tuf', brand:'ASUS', name:'ASUS TUF Gaming Z890-Plus WiFi', price:23499, specs:{'Chipset':'Z890','Form':'ATX','WiFi':'Yes','PCIe':'Gen5 ready','BIOS Flashback':'Yes'}, attrs:{socket:'LGA1851', maxRamSpeed:7200, formFactor:'ATX'}},
+    {id:'mobo-asus-b760-tuf', brand:'ASUS', name:'ASUS TUF Gaming B760-Plus WiFi', price:13999, specs:{'Chipset':'B760','Form':'ATX','WiFi':'Yes','PCIe':'Gen4','BIOS Flashback':'Yes'}, attrs:{socket:'LGA1700', maxRamSpeed:5600, formFactor:'ATX'}},
+    {id:'mobo-giga-x', brand:'Gigabyte', name:'Gigabyte B650 Gaming X AX', price:16999, specs:{'Chipset':'B650','Form':'ATX','WiFi':'Yes','PCIe':'Gen4','BIOS Flashback':'Yes'}, attrs:{socket:'AM5', maxRamSpeed:6000, formFactor:'ATX'}},
+    {id:'mobo-giga-z890-x', brand:'Gigabyte', name:'Gigabyte Z890 Gaming X AX', price:22999, specs:{'Chipset':'Z890','Form':'ATX','WiFi':'Yes','PCIe':'Gen5 ready','BIOS Flashback':'Yes'}, attrs:{socket:'LGA1851', maxRamSpeed:6800, formFactor:'ATX'}},
+    {id:'mobo-giga-b760-x', brand:'Gigabyte', name:'Gigabyte B760 Gaming X AX', price:12499, specs:{'Chipset':'B760','Form':'ATX','WiFi':'Yes','PCIe':'Gen4','BIOS Flashback':'Yes'}, attrs:{socket:'LGA1700', maxRamSpeed:5600, formFactor:'ATX'}},
+  ],
+  ram: [
+    {id:'ram-kingston-5600-16', brand:'Kingston', name:'Kingston Fury Beast 16GB (2x8) DDR5-5600', price:4499, specs:{'Capacity':'16GB (2x8GB)','Speed':'5600 MT/s','Latency':'CL36'}, attrs:{speed:5600}},
+    {id:'ram-crucial-pro-5600-16', brand:'Crucial', name:'Crucial Pro 16GB (2x8) DDR5-5600', price:3999, specs:{'Capacity':'16GB (2x8GB)','Speed':'5600 MT/s','Latency':'CL46'}, attrs:{speed:5600}},
+    {id:'ram-teamgroup-vulcan-6000-32', brand:'TeamGroup', name:'TeamGroup T-Force Vulcan 32GB (2x16) DDR5-6000', price:9499, specs:{'Capacity':'32GB (2x16GB)','Speed':'6000 MT/s','Latency':'CL30'}, attrs:{speed:6000}},
+    {id:'ram-gskill-flarex5', brand:'G.Skill', name:'G.Skill Flare X5 32GB (2x16) DDR5-6000', price:10999, specs:{'Capacity':'32GB (2x16GB)','Speed':'6000 MT/s','Latency':'CL30','Profile':'AMD EXPO'}, attrs:{speed:6000}},
+    {id:'ram-kingston-fury', brand:'Kingston', name:'Kingston Fury Beast 32GB (2x16) DDR5-6000', price:9999, specs:{'Capacity':'32GB (2x16GB)','Speed':'6000 MT/s','Latency':'CL36'}, attrs:{speed:6000}},
+    {id:'ram-corsair-vengeance', brand:'Corsair', name:'Corsair Vengeance RGB 32GB (2x16) DDR5-6000', price:11999, specs:{'Capacity':'32GB (2x16GB)','Speed':'6000 MT/s','Latency':'CL30','Lighting':'RGB'}, attrs:{speed:6000}},
+    {id:'ram-adata-lancer-6400-32', brand:'ADATA', name:'ADATA XPG Lancer 32GB (2x16) DDR5-6400', price:10999, specs:{'Capacity':'32GB (2x16GB)','Speed':'6400 MT/s','Latency':'CL32'}, attrs:{speed:6400}},
+    {id:'ram-gskill-7200', brand:'G.Skill', name:'G.Skill Trident Z5 32GB (2x16) DDR5-7200', price:14999, specs:{'Capacity':'32GB (2x16GB)','Speed':'7200 MT/s','Latency':'CL34'}, attrs:{speed:7200}},
+    {id:'ram-corsair-dominator-7200', brand:'Corsair', name:'Corsair Dominator Platinum 32GB (2x16) DDR5-7200', price:15999, specs:{'Capacity':'32GB (2x16GB)','Speed':'7200 MT/s','Latency':'CL34'}, attrs:{speed:7200}},
+    {id:'ram-gskill-trident-8000', brand:'G.Skill', name:'G.Skill Trident Z5 RGB 32GB (2x16) DDR5-8000', price:17999, specs:{'Capacity':'32GB (2x16GB)','Speed':'8000 MT/s','Latency':'CL38'}, attrs:{speed:8000}},
+    {id:'ram-teamgroup-delta-64', brand:'TeamGroup', name:'TeamGroup T-Force Delta RGB 64GB (2x32) DDR5-6000', price:19999, specs:{'Capacity':'64GB (2x32GB)','Speed':'6000 MT/s','Latency':'CL30'}, attrs:{speed:6000}},
+    {id:'ram-kingston-renegade-64', brand:'Kingston', name:'Kingston Fury Renegade 64GB (2x32) DDR5-6400', price:21999, specs:{'Capacity':'64GB (2x32GB)','Speed':'6400 MT/s','Latency':'CL32'}, attrs:{speed:6400}},
+  ],
+  storage: [
+    {id:'ssd-kingston-nv3-500', brand:'Kingston', name:'Kingston NV3 500GB', price:3499, specs:{'Capacity':'500GB','Interface':'NVMe Gen4','DRAM Cache':'No'}, attrs:{}},
+    {id:'ssd-wd-blue-sn580-1tb', brand:'WD', name:'WD Blue SN580 1TB', price:6499, specs:{'Capacity':'1TB','Interface':'NVMe Gen4','DRAM Cache':'No'}, attrs:{}},
+    {id:'ssd-sn850x', brand:'WD', name:'WD Black SN850X 2TB', price:13499, specs:{'Capacity':'2TB','Interface':'NVMe Gen4','DRAM Cache':'Yes'}, attrs:{}},
+    {id:'ssd-sn850x-4tb', brand:'WD', name:'WD Black SN850X 4TB', price:27999, specs:{'Capacity':'4TB','Interface':'NVMe Gen4','DRAM Cache':'Yes'}, attrs:{}},
+    {id:'ssd-990pro', brand:'Samsung', name:'Samsung 990 Pro 2TB', price:14999, specs:{'Capacity':'2TB','Interface':'NVMe Gen4','DRAM Cache':'Yes'}, attrs:{}},
+    {id:'ssd-990pro-4tb', brand:'Samsung', name:'Samsung 990 Pro 4TB', price:29999, specs:{'Capacity':'4TB','Interface':'NVMe Gen4','DRAM Cache':'Yes'}, attrs:{}},
+    {id:'ssd-samsung-9100pro', brand:'Samsung', name:'Samsung 9100 Pro 2TB', price:19999, specs:{'Capacity':'2TB','Interface':'NVMe Gen5','DRAM Cache':'Yes'}, attrs:{}},
+    {id:'ssd-t500', brand:'Crucial', name:'Crucial T500 2TB', price:12999, specs:{'Capacity':'2TB','Interface':'NVMe Gen4','DRAM Cache':'Yes'}, attrs:{}},
+    {id:'ssd-crucial-t705', brand:'Crucial', name:'Crucial T705 2TB', price:18999, specs:{'Capacity':'2TB','Interface':'NVMe Gen5','DRAM Cache':'Yes'}, attrs:{}},
+    {id:'ssd-crucial-mx500', brand:'Crucial', name:'Crucial MX500 1TB SATA SSD', price:5499, specs:{'Capacity':'1TB','Interface':'SATA III','DRAM Cache':'Yes'}, attrs:{}},
+    {id:'ssd-kc3000', brand:'Kingston', name:'Kingston KC3000 2TB', price:12499, specs:{'Capacity':'2TB','Interface':'NVMe Gen4','DRAM Cache':'Yes'}, attrs:{}},
+    {id:'ssd-seagate-firecuda530', brand:'Seagate', name:'Seagate FireCuda 530 1TB', price:8999, specs:{'Capacity':'1TB','Interface':'NVMe Gen4','DRAM Cache':'Yes'}, attrs:{}},
+    {id:'ssd-adata-legend970', brand:'ADATA', name:'ADATA Legend 970 2TB', price:17999, specs:{'Capacity':'2TB','Interface':'NVMe Gen5','DRAM Cache':'Yes'}, attrs:{}},
+    {id:'ssd-sandisk-ultra3d', brand:'SanDisk', name:'SanDisk Ultra 3D 1TB SATA SSD', price:5999, specs:{'Capacity':'1TB','Interface':'SATA III','DRAM Cache':'Yes'}, attrs:{}},
+  ],
+  psu: [
+    {id:'psu-coolermaster-mwe550', brand:'Cooler Master', name:'Cooler Master MWE Bronze 550W', price:4499, specs:{'Wattage':'550W','Efficiency':'80+ Bronze','Modular':'Semi'}, attrs:{wattage:550}},
+    {id:'psu-msi-a650bn', brand:'MSI', name:'MSI MAG A650BN 650W', price:5499, specs:{'Wattage':'650W','Efficiency':'80+ Bronze','Modular':'No'}, attrs:{wattage:650}},
+    {id:'psu-antec-neoeco650', brand:'Antec', name:'Antec NeoECO 650W Gold', price:6499, specs:{'Wattage':'650W','Efficiency':'80+ Gold','Modular':'Fully'}, attrs:{wattage:650}},
+    {id:'psu-deepcool-pk750d', brand:'DeepCool', name:'DeepCool PK750D 750W', price:6999, specs:{'Wattage':'750W','Efficiency':'80+ Bronze','Modular':'No'}, attrs:{wattage:750}},
+    {id:'psu-corsair-750', brand:'Corsair', name:'Corsair RM750e 750W', price:8499, specs:{'Wattage':'750W','Efficiency':'80+ Gold','Modular':'Fully'}, attrs:{wattage:750}},
+    {id:'psu-seasonic-gx850', brand:'Seasonic', name:'Seasonic Focus GX-850', price:10999, specs:{'Wattage':'850W','Efficiency':'80+ Gold','Modular':'Fully'}, attrs:{wattage:850}},
+    {id:'psu-corsair-rm1000e', brand:'Corsair', name:'Corsair RM1000e 1000W', price:11999, specs:{'Wattage':'1000W','Efficiency':'80+ Gold','Modular':'Fully'}, attrs:{wattage:1000}},
+    {id:'psu-seasonic-gx1000', brand:'Seasonic', name:'Seasonic Focus GX-1000', price:12999, specs:{'Wattage':'1000W','Efficiency':'80+ Gold','Modular':'Fully'}, attrs:{wattage:1000}},
+    {id:'psu-msi-a1000g', brand:'MSI', name:'MSI MPG A1000G', price:10999, specs:{'Wattage':'1000W','Efficiency':'80+ Gold','Modular':'Fully'}, attrs:{wattage:1000}},
+    {id:'psu-corsair-hx1200i', brand:'Corsair', name:'Corsair HX1200i 1200W', price:21999, specs:{'Wattage':'1200W','Efficiency':'80+ Platinum','Modular':'Fully'}, attrs:{wattage:1200}},
+  ],
+  cabinet: [
+    {id:'case-lancool216', brand:'Lian Li', name:'Lian Li Lancool 216', price:8999, specs:{'Form':'Mid Tower','GPU Clearance':'392mm'}, attrs:{maxGpuLengthMm:392, formFactorsSupported:['ATX','Micro-ATX','Mini-ITX']}},
+    {id:'case-lianli-o11vision', brand:'Lian Li', name:'Lian Li O11 Vision', price:13999, specs:{'Form':'Mid Tower','GPU Clearance':'395mm'}, attrs:{maxGpuLengthMm:395, formFactorsSupported:['ATX','Micro-ATX','Mini-ITX']}},
+    {id:'case-fractal-popair', brand:'Fractal Design', name:'Fractal Design Pop Air', price:8499, specs:{'Form':'Mid Tower','GPU Clearance':'365mm'}, attrs:{maxGpuLengthMm:365, formFactorsSupported:['ATX','Micro-ATX','Mini-ITX']}},
+    {id:'case-fractal-north', brand:'Fractal Design', name:'Fractal Design North', price:11999, specs:{'Form':'Mid Tower','GPU Clearance':'365mm'}, attrs:{maxGpuLengthMm:365, formFactorsSupported:['ATX','Micro-ATX','Mini-ITX']}},
+    {id:'case-montech-air903', brand:'Montech', name:'Montech Air 903 Max', price:6999, specs:{'Form':'Mid Tower','GPU Clearance':'400mm'}, attrs:{maxGpuLengthMm:400, formFactorsSupported:['ATX','Micro-ATX','Mini-ITX']}},
+    {id:'case-montech-king95mini', brand:'Montech', name:'Montech King 95 Mini', price:6499, specs:{'Form':'Micro Tower','GPU Clearance':'330mm'}, attrs:{maxGpuLengthMm:330, formFactorsSupported:['Micro-ATX','Mini-ITX']}},
+    {id:'case-corsair-4000d', brand:'Corsair', name:'Corsair 4000D Airflow', price:9999, specs:{'Form':'Mid Tower','GPU Clearance':'360mm'}, attrs:{maxGpuLengthMm:360, formFactorsSupported:['ATX','Micro-ATX','Mini-ITX']}},
+    {id:'case-corsair-2500x', brand:'Corsair', name:'Corsair 2500X', price:14999, specs:{'Form':'Dual-chamber Mid Tower','GPU Clearance':'370mm'}, attrs:{maxGpuLengthMm:370, formFactorsSupported:['ATX','Micro-ATX','Mini-ITX']}},
+    {id:'case-deepcool-ch560', brand:'DeepCool', name:'DeepCool CH560', price:7499, specs:{'Form':'Mid Tower','GPU Clearance':'330mm'}, attrs:{maxGpuLengthMm:330, formFactorsSupported:['ATX','Micro-ATX','Mini-ITX']}},
+    {id:'case-nzxt-h7flow', brand:'NZXT', name:'NZXT H7 Flow', price:11499, specs:{'Form':'Mid Tower','GPU Clearance':'400mm'}, attrs:{maxGpuLengthMm:400, formFactorsSupported:['ATX','Micro-ATX','Mini-ITX']}},
+    {id:'case-coolermaster-qube500', brand:'Cooler Master', name:'Cooler Master Qube 500', price:8999, specs:{'Form':'Mid Tower','GPU Clearance':'360mm'}, attrs:{maxGpuLengthMm:360, formFactorsSupported:['ATX','Micro-ATX','Mini-ITX']}},
+  ],
+};
+
+const STORAGE_KEY = 'buildprint.selections.v1';
+function getItem(catId, itemId){ if(!itemId) return null; return CATALOG[catId].find(i=>i.id===itemId) || null; }
+function inr(n){ return '₹'+Math.round(n).toLocaleString('en-IN'); }
+
+function loadState(){
+  const params = new URLSearchParams(location.search);
+  const b = params.get('b');
+  if(b){
+    try{
+      const json = atob(b.replace(/-/g,'+').replace(/_/g,'/'));
+      return {selections: JSON.parse(json), platform: null};
+    }catch(e){ console.warn('Bad share link', e); }
+  }
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    return (parsed && parsed.selections) ? parsed : {selections: parsed, platform: null};
+  }catch(e){ return null; }
+}
+
+function computeChecks(sel){
+  const flags = [];
+  const cpu = getItem('cpu', sel.cpu);
+  const cooler = getItem('cooler', sel.cooler);
+  const gpu = getItem('gpu', sel.gpu);
+  const mobo = getItem('motherboard', sel.motherboard);
+  const ram = getItem('ram', sel.ram);
+  const psu = getItem('psu', sel.psu);
+  const cabinet = getItem('cabinet', sel.cabinet);
+
+  if(cooler && cpu && !cooler.attrs.sockets.includes(cpu.attrs.socket)){
+    flags.push({category:'cooler', message:`${cooler.name} isn't rated for ${cpu.attrs.socket} — pick a cooler that lists ${cpu.attrs.socket} support.`});
+  }
+  if(mobo && cpu && mobo.attrs.socket !== cpu.attrs.socket){
+    flags.push({category:'motherboard', message:`${mobo.name} is ${mobo.attrs.socket}, but the CPU needs ${cpu.attrs.socket}.`});
+  }
+  if(gpu && cabinet && gpu.attrs.lengthMm > cabinet.attrs.maxGpuLengthMm){
+    const over = gpu.attrs.lengthMm - cabinet.attrs.maxGpuLengthMm;
+    flags.push({category:'cabinet', message:`${gpu.name} is ${gpu.attrs.lengthMm}mm — ${over}mm longer than ${cabinet.name} allows (${cabinet.attrs.maxGpuLengthMm}mm).`});
+  }
+  if(ram && mobo && ram.attrs.speed > mobo.attrs.maxRamSpeed){
+    flags.push({category:'ram', message:`${ram.name} is rated for ${ram.attrs.speed} MT/s — ${mobo.name} only supports up to ${mobo.attrs.maxRamSpeed} MT/s.`});
+  }
+  if(mobo && cabinet && !cabinet.attrs.formFactorsSupported.includes(mobo.attrs.formFactor)){
+    flags.push({category:'cabinet', message:`${mobo.name} is ${mobo.attrs.formFactor} — ${cabinet.name} doesn't have a mount for that size.`});
+  }
+  let draw = null;
+  if(cpu && gpu){
+    draw = cpu.attrs.tdp + gpu.attrs.wattage + 120;
+    if(psu && psu.attrs.wattage < draw*1.2){
+      const headroomPct = Math.round(((psu.attrs.wattage/draw)-1)*100);
+      flags.push({category:'psu', message:`${psu.name} leaves only ~${headroomPct}% headroom over this build's ~${draw}W draw — 20%+ is a safer margin.`});
+    }
+  }
+  return {flags, draw};
+}
+
+/* ======================= RENDER ======================= */
+const loaded = loadState();
+if(!loaded || Object.keys(loaded.selections || {}).length === 0){
+  document.getElementById('page-content').style.display = 'none';
+  document.getElementById('empty-state').style.display = 'block';
+} else {
+  const selections = loaded.selections;
+  const total = CATEGORY_META.reduce((sum,c)=>{
+    const it = getItem(c.id, selections[c.id]);
+    return sum + (it ? it.price : 0);
+  }, 0);
+  const {flags, draw} = computeChecks(selections);
+  const allSelected = CATEGORY_META.every(c=>selections[c.id]);
+
+  document.getElementById('hero-total').textContent = inr(total);
+  document.getElementById('hero-watt').textContent = draw ? draw+'W' : '—';
+  const statusEl = document.getElementById('hero-status');
+  if(!allSelected){ statusEl.textContent='INCOMPLETE'; statusEl.style.color='var(--muted)'; }
+  else if(flags.length){ statusEl.textContent=`FLAGGED (${flags.length})`; statusEl.style.color='var(--redline)'; }
+  else { statusEl.textContent='CHECKED'; statusEl.style.color='var(--cyan)'; }
+
+  const banner = document.getElementById('flags-banner');
+  if(flags.length){
+    banner.className = 'flags-banner has-flags';
+    banner.innerHTML = `⚠ ${flags.length} compatibility flag${flags.length>1?'s':''}<ul>${flags.map(f=>`<li>${f.message}</li>`).join('')}</ul>`;
+  } else {
+    banner.className = 'flags-banner is-ok';
+    banner.innerHTML = '✓ No compatibility flags on this build.';
+  }
+
+  function shortName(item){ return item.name.length>30 ? item.name.slice(0,28)+'…' : item.name; }
+  const layerData = [
+    {cat:'cpu', x:'4%', y:'10%', flip:false},
+    {cat:'cooler', x:'58%', y:'2%', flip:true},
+    {cat:'motherboard', x:'62%', y:'24%', flip:true},
+    {cat:'ram', x:'66%', y:'40%', flip:true},
+    {cat:'gpu', x:'2%', y:'58%', flip:false},
+    {cat:'storage', x:'62%', y:'58%', flip:true},
+    {cat:'psu', x:'6%', y:'82%', flip:false},
+  ];
+  const layer = document.getElementById('callout-layer');
+  layer.innerHTML = layerData.map(d=>{
+    const meta = CATEGORY_META.find(c=>c.id===d.cat);
+    const item = getItem(d.cat, selections[d.cat]);
+    const text = item ? shortName(item) : 'Not selected';
+    return `<div class="callout ${d.flip?'flip':''}" style="left:${d.x}; top:${d.y};">
+      <span class="callout-label">${meta.pn}</span>${text}
+    </div>`;
+  }).join('');
+
+  const cabinetItem = getItem('cabinet', selections.cabinet);
+  document.getElementById('rig-caption').textContent = cabinetItem
+    ? `${cabinetItem.name} — ${Object.entries(cabinetItem.specs).map(([k,v])=>`${k}: ${v}`).join(' · ')}`
+    : 'Cabinet — not selected';
+
+  document.getElementById('specs-panel').innerHTML = CATEGORY_META.map(c=>{
+    const item = getItem(c.id, selections[c.id]);
+    if(!item){
+      return `<div class="specs-row empty">
+        <div class="specs-row-cat">${c.pn} · ${c.label.toUpperCase()}</div>
+        <div class="specs-row-name">Not selected</div>
+      </div>`;
+    }
+    const specsStr = Object.entries(item.specs).map(([k,v])=>`${k}: ${v}`).join(' · ');
+    return `<div class="specs-row">
+      <div class="specs-row-cat">${c.pn} · ${c.label.toUpperCase()}</div>
+      <div class="specs-row-name">${item.name}</div>
+      <div class="specs-row-specs">${specsStr}</div>
+      <div class="specs-row-price">${inr(item.price)}</div>
+    </div>`;
+  }).join('');
+
+  function buildPrintSheet(){
+    let rows = '';
+    CATEGORY_META.forEach(c=>{
+      const item = getItem(c.id, selections[c.id]);
+      if(item){
+        const specLines = Object.entries(item.specs).map(([k,v])=>`${k}: ${v}`).join(' · ');
+        rows += `<tr><td>${c.label}</td><td>${item.name}</td><td>${specLines}</td><td>${inr(item.price)}</td></tr>`;
+      } else {
+        rows += `<tr><td>${c.label}</td><td colspan="3">Not selected</td></tr>`;
+      }
+    });
+    const flagsHtml = flags.length ? `<ul>${flags.map(f=>`<li>${f.message}</li>`).join('')}</ul>` : `<p>No flags.</p>`;
+    document.getElementById('print-sheet').innerHTML = `
+      <h1>BUILDPRINT — Spec Sheet</h1>
+      <p>Generated ${new Date().toLocaleString('en-IN')}</p>
+      <table><thead><tr><th>Category</th><th>Component</th><th>Specs</th><th>Price</th></tr></thead><tbody>${rows}</tbody></table>
+      <p><strong>Total: ${inr(total)}</strong>${draw ? ` &nbsp; Est. draw: ${draw}W` : ''}</p>
+      <h2 style="margin-top:18px;">Compatibility</h2>${flagsHtml}
+      <p class="note">Prices are placeholder figures for layout, not live retailer prices.</p>
+    `;
+  }
+
+  async function saveBuildToFile(){
+    const payload = JSON.stringify({selections, platform: loaded.platform || null, savedAt: new Date().toISOString()}, null, 2);
+    const filename = 'buildprint-build.json';
+    if(window.showSaveFilePicker){
+      try{
+        const handle = await window.showSaveFilePicker({ suggestedName: filename, types:[{description:'BUILDPRINT build file', accept:{'application/json':['.json']}}] });
+        const writable = await handle.createWritable();
+        await writable.write(payload);
+        await writable.close();
+        return;
+      }catch(err){ if(err && err.name==='AbortError') return; }
+    }
+    const blob = new Blob([payload], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href=url; a.download=filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  const exportBtn = document.createElement('button');
+  exportBtn.className = 'btn btn-primary';
+  exportBtn.textContent = 'Export / Print';
+  exportBtn.addEventListener('click', ()=>{
+    buildPrintSheet();
+    document.body.classList.add('printing');
+    window.print();
+  });
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'btn';
+  saveBtn.textContent = 'Save build file';
+  saveBtn.addEventListener('click', saveBuildToFile);
+  document.querySelector('.nav-actions').append(saveBtn, exportBtn);
+
+  window.addEventListener('afterprint', ()=>document.body.classList.remove('printing'));
+}
+</script>
+
+</body>
+</html>
