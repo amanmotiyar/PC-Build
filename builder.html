@@ -100,7 +100,16 @@
   }
   .carousel-arrow:hover{ border-color:var(--muted); color:var(--paper); }
   .carousel-current{ display:flex; flex-direction:column; align-items:center; gap:10px; min-width:240px; }
+  .carousel-arrow:disabled{ opacity:0.25; cursor:not-allowed; }
+  .carousel-arrow:disabled:hover{ border-color:var(--grid-line); color:var(--muted); }
   .carousel-pn{ font-family:var(--font-mono); font-size:0.68rem; color:var(--copper); letter-spacing:0.1em; }
+  .carousel-complete{
+    display:none; justify-content:center; text-align:center;
+    margin-top:6px; padding-top:16px; border-top:1px dashed var(--grid-line);
+    font-family:var(--font-mono); font-size:0.82rem;
+  }
+  .carousel-complete .complete-ok{ color:var(--cyan); }
+  .carousel-complete .complete-flag{ color:var(--redline); }
 
   .section-heading{ display:flex; align-items:baseline; gap:14px; margin-bottom:4px; }
   .section-heading h2{ font-size:1.15rem; }
@@ -280,6 +289,7 @@
           </div>
           <button type="button" class="carousel-arrow" id="carousel-next" aria-label="Next category">›</button>
         </div>
+        <div class="carousel-complete" id="carousel-complete"></div>
       </div>
     </div>
   </div>
@@ -860,16 +870,33 @@ document.getElementById('platform-options').addEventListener('click', e=>{
 
 function renderCarousel(){
   const meta = CATEGORY_META[carouselIndex];
-  document.getElementById('carousel-pn').textContent = meta.pn;
-  document.getElementById('carousel-choose').textContent = 'CHOOSE ' + meta.label.toUpperCase();
+  document.getElementById('carousel-pn').textContent = `${meta.pn} · ${carouselIndex+1} of ${CATEGORY_META.length}`;
+  const chooseBtn = document.getElementById('carousel-choose');
+  const item = getItem(meta.id, state.selections[meta.id]);
+  chooseBtn.textContent = item ? ('CHANGE ' + meta.label.toUpperCase()) : ('CHOOSE ' + meta.label.toUpperCase());
+  document.getElementById('carousel-prev').disabled = (carouselIndex===0);
+  document.getElementById('carousel-next').disabled = (carouselIndex===CATEGORY_META.length-1);
+  renderCarouselComplete();
+}
+function renderCarouselComplete(){
+  const banner = document.getElementById('carousel-complete');
+  const allSelected = CATEGORY_META.every(c=>state.selections[c.id]);
+  if(!allSelected){ banner.style.display='none'; banner.innerHTML=''; return; }
+  const total = CATEGORY_META.reduce((sum,c)=>{
+    const it = getItem(c.id, state.selections[c.id]);
+    return sum + (it ? it.price : 0);
+  }, 0);
+  const {flags} = computeChecks(state.selections);
+  banner.style.display = 'flex';
+  banner.innerHTML = flags.length
+    ? `<span class="complete-flag">⚠ All 8 parts picked — ${flags.length} flag${flags.length>1?'s':''} to fix. See Your Build below.</span>`
+    : `<span class="complete-ok">✓ All 8 parts picked — ${inr(total)} total, no compatibility flags.</span>`;
 }
 document.getElementById('carousel-prev').addEventListener('click', ()=>{
-  carouselIndex = (carouselIndex - 1 + CATEGORY_META.length) % CATEGORY_META.length;
-  renderCarousel();
+  if(carouselIndex>0){ carouselIndex--; renderCarousel(); }
 });
 document.getElementById('carousel-next').addEventListener('click', ()=>{
-  carouselIndex = (carouselIndex + 1) % CATEGORY_META.length;
-  renderCarousel();
+  if(carouselIndex<CATEGORY_META.length-1){ carouselIndex++; renderCarousel(); }
 });
 document.getElementById('carousel-choose').addEventListener('click', ()=>{
   openModal(CATEGORY_META[carouselIndex].id);
@@ -882,10 +909,10 @@ function selectItem(catId, itemId){
   renderBuildGrid();
   renderDock();
   const idx = CATEGORY_META.findIndex(c=>c.id===catId);
-  if(idx===carouselIndex){
-    carouselIndex = (carouselIndex + 1) % CATEGORY_META.length;
-    renderCarousel();
+  if(idx===carouselIndex && carouselIndex<CATEGORY_META.length-1){
+    carouselIndex++;
   }
+  renderCarousel();
 }
 
 function renderDock(){
@@ -940,9 +967,11 @@ document.getElementById('btn-reset').addEventListener('click', ()=>{
   if(!confirm('Reset this build back to empty? This clears your current picks and platform filter.')) return;
   state.selections = defaultSelections();
   state.platform = null;
+  carouselIndex = 0;
   saveToStorage();
   history.replaceState(null, '', location.pathname);
   renderPlatformPills();
+  renderCarousel();
   renderAll();
 });
 
