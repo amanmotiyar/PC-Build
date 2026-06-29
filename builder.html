@@ -30,11 +30,12 @@
       linear-gradient(var(--grid-line) 1px, transparent 1px),
       linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size:42px 42px;
-    padding-bottom:190px; /* room for the fixed dock */
+    padding-bottom:150px; /* room for the fixed dock */
   }
   a{color:inherit; text-decoration:none;}
   :focus-visible{ outline:2px solid var(--copper); outline-offset:3px; border-radius:2px; }
   h1,h2,h3{font-family:var(--font-display); font-weight:600; color:var(--paper);}
+  button{ font:inherit; color:inherit; }
 
   .eyebrow{
     font-family:var(--font-mono); font-size:0.7rem; letter-spacing:0.14em;
@@ -50,77 +51,101 @@
   }
   nav{
     display:flex; align-items:center; justify-content:space-between;
-    padding:16px 28px; max-width:1280px; margin:0 auto;
+    padding:16px 28px; max-width:1180px; margin:0 auto;
   }
   .logo{ display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; font-size:1rem; }
   #autosave-indicator{ font-family:var(--font-mono); font-size:0.7rem; color:var(--muted); letter-spacing:0.08em; }
 
   /* ---------- PAGE INTRO ---------- */
-  .intro{ max-width:1280px; margin:0 auto; padding:40px 28px 8px; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 28px; }
+  .intro{ padding:40px 0 8px; }
   .intro h1{ font-size:clamp(1.7rem,3vw,2.3rem); margin:14px 0 10px; }
-  .intro p{ color:var(--muted); max-width:560px; font-size:0.96rem; }
+  .intro p{ color:var(--muted); max-width:580px; font-size:0.96rem; }
   .intro .note{
     font-family:var(--font-mono); font-size:0.74rem; color:var(--muted);
-    border-left:2px solid var(--copper); padding-left:10px; margin-top:18px; max-width:560px;
+    border-left:2px solid var(--copper); padding-left:10px; margin-top:18px; max-width:580px;
   }
 
-  /* ---------- LAYOUT ---------- */
-  .builder{
-    max-width:1280px; margin:0 auto; padding:30px 28px 0;
-    display:grid; grid-template-columns:190px 1fr; gap:36px; align-items:start;
-  }
-  .stepper{ position:sticky; top:80px; }
-  .stepper ul{ list-style:none; border-left:1px solid var(--grid-line); }
-  .stepper li a{
-    display:flex; align-items:center; gap:10px;
-    font-family:var(--font-mono); font-size:0.78rem; letter-spacing:0.03em; color:var(--muted);
-    padding:9px 0 9px 16px; position:relative;
-  }
-  .stepper li a:hover{ color:var(--paper); }
-  .stepper .dot{
-    width:7px; height:7px; border-radius:50%; border:1.4px solid var(--muted); flex-shrink:0;
-  }
-  .stepper li a.done .dot{ background:var(--cyan); border-color:var(--cyan); }
-  .stepper li a.done{ color:var(--paper); }
+  /* ---------- LEGEND ---------- */
+  .legend{ display:flex; gap:22px; margin:28px 0 18px; flex-wrap:wrap; }
+  .legend-item{ display:flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:0.78rem; color:var(--muted); }
+  .dot{ width:8px; height:8px; border-radius:50%; display:inline-block; }
+  .dot-todo{ background:var(--muted); }
+  .dot-selected{ background:var(--cyan); }
+  .dot-flag{ background:var(--redline); }
 
-  .categories{ display:flex; flex-direction:column; gap:54px; }
-  .cat-section{ scroll-margin-top:84px; }
-  .cat-head{ margin-bottom:18px; }
-  .cat-head .pn{ font-family:var(--font-mono); font-size:0.7rem; color:var(--copper); letter-spacing:0.08em; }
-  .cat-head h2{ font-size:1.25rem; margin:8px 0 6px; }
-  .cat-head p{ color:var(--muted); font-size:0.88rem; max-width:520px; }
-
-  .option-grid{
-    display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:14px;
+  /* ---------- BUILD GRID ---------- */
+  .build-grid{
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:14px; padding-bottom:24px;
   }
-  .brand-pills{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
-  .brand-pill{
-    font-family:var(--font-mono); font-size:0.76rem; letter-spacing:0.02em;
-    padding:7px 14px; border-radius:20px; border:1px solid var(--grid-line); color:var(--muted);
-    cursor:pointer; background:transparent; transition:border-color .15s, color .15s;
-  }
-  .brand-pill:hover{ border-color:var(--muted); color:var(--paper); }
-  .brand-pill.active{ border-color:var(--copper); color:var(--copper); background:rgba(255,138,61,0.08); }
-  .brand-pill .count{ color:var(--muted); margin-left:6px; }
-  .brand-pill.active .count{ color:var(--copper); opacity:0.7; }
-  .opt-card{
+  .tile{
     background:var(--ink-2); border:1px solid var(--grid-line); border-radius:6px;
-    padding:16px; cursor:pointer; transition:border-color .15s, transform .1s;
+    padding:16px; text-align:left; cursor:pointer; position:relative;
+    transition:border-color .15s, transform .1s;
   }
-  .opt-card:hover{ border-color:var(--muted); transform:translateY(-1px); }
-  .opt-card.selected{ border-color:var(--copper); background:var(--ink-3); }
-  .opt-tier{
-    display:inline-block; font-family:var(--font-mono); font-size:0.64rem; letter-spacing:0.08em;
-    color:var(--muted); border:1px solid var(--grid-line); border-radius:3px; padding:2px 7px; margin-bottom:10px;
+  .tile:hover{ border-color:var(--muted); transform:translateY(-1px); }
+  .tile-pn{ font-family:var(--font-mono); font-size:0.64rem; color:var(--copper); letter-spacing:0.08em; }
+  .tile-dot{ position:absolute; top:16px; right:16px; width:8px; height:8px; border-radius:50%; }
+  .tile-label{ font-family:var(--font-display); font-size:0.92rem; margin:10px 0 4px; }
+  .tile-value{
+    font-family:var(--font-mono); font-size:0.78rem; color:var(--muted);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
-  .opt-card.is-preferred .opt-tier{ color:var(--copper); border-color:var(--copper); }
-  .opt-card h3{ font-size:0.95rem; font-family:var(--font-display); margin-bottom:10px; line-height:1.3; }
-  .opt-specs{ list-style:none; font-family:var(--font-mono); font-size:0.74rem; color:var(--muted); margin-bottom:12px; }
-  .opt-specs li{ display:flex; justify-content:space-between; gap:10px; padding:3px 0; border-top:1px solid var(--grid-line); }
-  .opt-specs li:first-child{ border-top:none; }
-  .opt-specs li span:last-child{ color:var(--paper); text-align:right; }
-  .opt-price{ font-family:var(--font-mono); font-size:0.95rem; color:var(--paper); }
-  .opt-card.selected .opt-price{ color:var(--cyan); }
+  .tile[data-status="selected"] .tile-value,
+  .tile[data-status="flag"] .tile-value{ color:var(--paper); }
+
+  @media (max-width:980px){ .build-grid{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:560px){ .build-grid{ grid-template-columns:1fr; } }
+
+  /* ---------- MODAL ---------- */
+  .modal-overlay{
+    display:none; position:fixed; inset:0; z-index:100;
+    background:rgba(8,20,34,0.72); backdrop-filter:blur(4px);
+    align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal{
+    background:var(--ink-2); border:1px solid var(--grid-line); border-radius:8px;
+    width:100%; max-width:640px; max-height:82vh; display:flex; flex-direction:column;
+    overflow:hidden;
+  }
+  .modal-header{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:18px 22px; border-bottom:1px solid var(--grid-line);
+  }
+  .modal-header h3{ font-family:var(--font-mono); font-size:0.85rem; letter-spacing:0.06em; color:var(--paper); }
+  .modal-close{ background:none; border:none; color:var(--muted); font-size:1.3rem; cursor:pointer; line-height:1; }
+  .modal-close:hover{ color:var(--paper); }
+  .modal-body{ overflow-y:auto; flex:1; }
+  .modal-footer{
+    display:flex; justify-content:flex-end; gap:10px; padding:16px 22px; border-top:1px solid var(--grid-line);
+  }
+
+  .accordion-header{
+    width:100%; display:flex; justify-content:space-between; align-items:center;
+    background:var(--ink-3); border:none; border-bottom:1px solid var(--grid-line);
+    padding:13px 22px; font-family:var(--font-mono); font-size:0.82rem; letter-spacing:0.03em;
+    color:var(--paper); cursor:pointer; text-align:left;
+  }
+  .accordion-header:hover{ color:var(--cyan); }
+  .accordion-header .chev{ color:var(--muted); }
+  .accordion-body{ }
+  .modal-option{
+    padding:13px 22px 13px 26px; border-bottom:1px solid var(--grid-line); cursor:pointer;
+    border-left:3px solid transparent; transition:background .12s, border-color .12s;
+  }
+  .modal-option:hover{ background:rgba(255,255,255,0.02); }
+  .modal-option.active{ border-left-color:var(--copper); background:rgba(255,138,61,0.06); }
+  .modal-option-top{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+  .modal-option-top strong{ font-family:var(--font-display); font-size:0.92rem; font-weight:600; }
+  .tier-badge{
+    font-family:var(--font-mono); font-size:0.62rem; letter-spacing:0.06em; color:var(--muted);
+    border:1px solid var(--grid-line); border-radius:3px; padding:2px 6px; flex-shrink:0;
+  }
+  .tier-badge.is-preferred{ color:var(--copper); border-color:var(--copper); }
+  .modal-option-specs{ font-family:var(--font-mono); font-size:0.74rem; color:var(--muted); margin-top:5px; }
+  .modal-option-price{ font-family:var(--font-mono); font-size:0.88rem; color:var(--paper); margin-top:6px; }
+  .modal-option.active .modal-option-price{ color:var(--cyan); }
 
   /* ---------- DOCK ---------- */
   .dock{
@@ -128,7 +153,7 @@
     background:rgba(18,43,71,0.96); backdrop-filter:blur(10px);
     border-top:1px solid var(--grid-line);
   }
-  .dock-inner{ max-width:1280px; margin:0 auto; padding:14px 28px 16px; }
+  .dock-inner{ max-width:1180px; margin:0 auto; padding:14px 28px 16px; }
   .dock-row{ display:flex; gap:30px; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; }
   .dock-figures{ display:flex; gap:30px; flex-wrap:wrap; }
   .dock-figure .label{ font-family:var(--font-mono); font-size:0.62rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; }
@@ -144,17 +169,10 @@
   .btn-primary:hover{ background:#ffa05f; }
   .btn-danger:hover{ border-color:var(--redline); color:var(--redline); }
 
-  .dock-flags{ display:none; margin-top:12px; border-top:1px dashed var(--grid-line); padding-top:10px; max-height:120px; overflow-y:auto; }
+  .dock-flags{ display:none; margin-top:12px; border-top:1px dashed var(--grid-line); padding-top:10px; max-height:110px; overflow-y:auto; }
   .flag-item{ font-family:var(--font-mono); font-size:0.78rem; color:var(--paper); padding:5px 0; display:flex; gap:8px; }
   .flag-tag{ color:var(--redline); flex-shrink:0; }
 
-  @media (max-width:900px){
-    .builder{ grid-template-columns:1fr; }
-    .stepper{ position:sticky; top:62px; padding:8px 0; background:var(--ink); z-index:40; }
-    .stepper ul{ display:flex; overflow-x:auto; border-left:none; gap:4px; border-bottom:1px solid var(--grid-line); }
-    .stepper li a{ padding:8px 12px; white-space:nowrap; }
-    body{ padding-bottom:230px; }
-  }
   @media (max-width:600px){
     .dock-row{ flex-direction:column; align-items:stretch; gap:14px; }
     .dock-actions{ justify-content:stretch; }
@@ -190,19 +208,36 @@
   </nav>
 </header>
 
-<div class="intro">
-  <p class="eyebrow">DRAWING — RIG.001</p>
-  <h1>Draw up your build.</h1>
-  <p>Every category starts on its preferred pick. Swap anything below — the bottom panel checks every pairing live and totals the price as you go.</p>
-  <p class="note">Prices shown are placeholder figures for layout, not live retailer prices. Wire up real pricing data whenever it's ready — nothing else here depends on it.</p>
+<div class="wrap">
+  <div class="intro">
+    <p class="eyebrow">DRAWING — RIG.001</p>
+    <h1>Draw up your build.</h1>
+    <p>Every part below starts on its preferred pick. Tap any tile to open its picker — pick a brand, then a model, then confirm. The bottom panel checks every pairing live.</p>
+    <p class="note">Prices shown are placeholder figures for layout, not live retailer prices. Wire up real pricing data whenever it's ready — nothing else here depends on it.</p>
+  </div>
+
+  <div class="legend">
+    <span class="legend-item"><i class="dot dot-todo"></i>To select</span>
+    <span class="legend-item"><i class="dot dot-selected"></i>Selected</span>
+    <span class="legend-item"><i class="dot dot-flag"></i>Flagged</span>
+  </div>
+
+  <div class="build-grid" id="build-grid"></div>
 </div>
 
-<div class="builder">
-  <aside class="stepper">
-    <ul id="stepper-list"></ul>
-  </aside>
-
-  <div class="categories" id="categories"></div>
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">CHOOSE PART</h3>
+      <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn" id="modal-cancel">Close</button>
+      <button class="btn btn-primary" id="modal-select">Select</button>
+    </div>
+  </div>
 </div>
 
 <div class="dock">
@@ -347,6 +382,7 @@ const CATALOG = {
 /* ======================= STATE ======================= */
 const STORAGE_KEY = 'buildprint.selections.v1';
 const state = { selections:{} };
+const modalState = { catId:null, pendingId:null };
 
 function getItem(catId, itemId){
   if(!itemId) return null;
@@ -361,19 +397,10 @@ function defaultSelections(){
   return sel;
 }
 function inr(n){ return '₹'+Math.round(n).toLocaleString('en-IN'); }
-
-/* ---- brand hierarchy (runtime-only, not persisted) ---- */
-const viewBrand = {};
 function getBrandsForCategory(catId){
   const seen = new Set(); const brands=[];
   CATALOG[catId].forEach(i=>{ if(!seen.has(i.brand)){ seen.add(i.brand); brands.push(i.brand); } });
   return brands;
-}
-function currentBrand(catId){
-  if(viewBrand[catId]) return viewBrand[catId];
-  const sel = getItem(catId, state.selections[catId]);
-  if(sel) return sel.brand;
-  return getBrandsForCategory(catId)[0];
 }
 
 /* ---- persistence ---- */
@@ -445,64 +472,115 @@ function computeChecks(sel){
   return {flags, draw, headroomPct};
 }
 
-/* ======================= RENDERING ======================= */
-function renderStepperList(){
-  const list = document.getElementById('stepper-list');
-  list.innerHTML = CATEGORY_META.map(c=>`
-    <li><a href="#sec-${c.id}" data-cat="${c.id}"><span class="dot"></span>${c.label}</a></li>
-  `).join('');
-}
-
-function renderCategorySections(){
-  const wrap = document.getElementById('categories');
-  wrap.innerHTML = CATEGORY_META.map(c=>`
-    <section class="cat-section" id="sec-${c.id}">
-      <div class="cat-head">
-        <div class="pn">${c.pn}</div>
-        <h2>${c.label}</h2>
-        <p>${c.desc}</p>
-      </div>
-      <div class="brand-pills" id="brands-${c.id}"></div>
-      <div class="option-grid" id="grid-${c.id}"></div>
-    </section>
-  `).join('');
-  CATEGORY_META.forEach(c=>{ renderBrandPills(c.id); renderGrid(c.id); });
-}
-
-function renderBrandPills(catId){
-  const container = document.getElementById('brands-'+catId);
-  const active = currentBrand(catId);
-  const brands = getBrandsForCategory(catId);
-  container.innerHTML = brands.map(brand=>{
-    const count = CATALOG[catId].filter(i=>i.brand===brand).length;
-    return `<button type="button" class="brand-pill ${brand===active?'active':''}" data-cat="${catId}" data-brand="${brand}">
-      ${brand}<span class="count">${count}</span>
+/* ======================= BUILD GRID ======================= */
+function renderBuildGrid(){
+  const {flags} = computeChecks(state.selections);
+  const flaggedCats = new Set(flags.map(f=>f.category));
+  const grid = document.getElementById('build-grid');
+  grid.innerHTML = CATEGORY_META.map(c=>{
+    const item = getItem(c.id, state.selections[c.id]);
+    let status = 'todo', valueText = 'Select', dotClass = 'dot-todo';
+    if(item){
+      valueText = item.name;
+      if(flaggedCats.has(c.id)){ status='flag'; dotClass='dot-flag'; }
+      else { status='selected'; dotClass='dot-selected'; }
+    }
+    return `<button type="button" class="tile" data-cat="${c.id}" data-status="${status}">
+      <span class="tile-pn">${c.pn}</span>
+      <span class="tile-dot ${dotClass}"></span>
+      <div class="tile-label">${c.label}</div>
+      <div class="tile-value">${valueText}</div>
     </button>`;
   }).join('');
 }
 
-function renderGrid(catId){
-  const container = document.getElementById('grid-'+catId);
-  const active = currentBrand(catId);
-  const items = CATALOG[catId].filter(i=>i.brand===active);
-  container.innerHTML = items.map(item=>{
-    const selected = state.selections[catId]===item.id;
-    const tierLabel = item.tier==='preferred' ? 'PREFERRED' : 'ALT '+item.tier.split('-')[1];
-    const specsHtml = Object.entries(item.specs).map(([k,v])=>`<li><span>${k}</span><span>${v}</span></li>`).join('');
-    return `<div class="opt-card ${selected?'selected':''} ${item.tier==='preferred'?'is-preferred':''}"
-              data-cat="${catId}" data-id="${item.id}" tabindex="0" role="button" aria-pressed="${selected}">
-      <span class="opt-tier">${tierLabel}</span>
-      <h3>${item.model}</h3>
-      <ul class="opt-specs">${specsHtml}</ul>
-      <div class="opt-price">${inr(item.price)}</div>
+document.getElementById('build-grid').addEventListener('click', e=>{
+  const tile = e.target.closest('.tile');
+  if(tile) openModal(tile.dataset.cat);
+});
+
+/* ======================= MODAL ======================= */
+function openModal(catId){
+  modalState.catId = catId;
+  modalState.pendingId = state.selections[catId] || null;
+  const meta = CATEGORY_META.find(c=>c.id===catId);
+  document.getElementById('modal-title').textContent = 'CHOOSE ' + meta.label.toUpperCase();
+  renderModalBody();
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal(){
+  document.getElementById('modal-overlay').classList.remove('open');
+  modalState.catId = null;
+  modalState.pendingId = null;
+}
+function renderModalBody(){
+  const catId = modalState.catId;
+  const brands = getBrandsForCategory(catId);
+  const activeItem = getItem(catId, modalState.pendingId);
+  const activeBrand = activeItem ? activeItem.brand : brands[0];
+
+  const body = document.getElementById('modal-body');
+  body.innerHTML = brands.map(brand=>{
+    const items = CATALOG[catId].filter(i=>i.brand===brand);
+    const isOpen = brand===activeBrand;
+    const optionsHtml = items.map(item=>{
+      const specsStr = Object.entries(item.specs).map(([k,v])=>`${k}: ${v}`).join(' · ');
+      const tierLabel = item.tier==='preferred' ? 'PREFERRED' : 'ALT '+item.tier.split('-')[1];
+      const active = modalState.pendingId===item.id;
+      return `<div class="modal-option ${active?'active':''}" data-id="${item.id}" tabindex="0" role="button">
+        <div class="modal-option-top">
+          <strong>${item.model}</strong>
+          <span class="tier-badge ${item.tier==='preferred'?'is-preferred':''}">${tierLabel}</span>
+        </div>
+        <div class="modal-option-specs">${specsStr}</div>
+        <div class="modal-option-price">${inr(item.price)}</div>
+      </div>`;
+    }).join('');
+    return `<div class="accordion-group">
+      <button type="button" class="accordion-header" data-brand="${brand}">
+        <span>${brand}</span><span class="chev">${isOpen?'\u2212':'+'}</span>
+      </button>
+      <div class="accordion-body" style="display:${isOpen?'block':'none'}">${optionsHtml}</div>
     </div>`;
   }).join('');
 }
 
-function renderStepperState(){
-  document.querySelectorAll('.stepper a').forEach(a=>{
-    a.classList.toggle('done', !!state.selections[a.dataset.cat]);
-  });
+document.getElementById('modal-body').addEventListener('click', e=>{
+  const header = e.target.closest('.accordion-header');
+  if(header){
+    const groupBody = header.nextElementSibling;
+    const isOpen = groupBody.style.display === 'block';
+    groupBody.style.display = isOpen ? 'none' : 'block';
+    header.querySelector('.chev').textContent = isOpen ? '+' : '\u2212';
+    return;
+  }
+  const opt = e.target.closest('.modal-option');
+  if(opt){
+    modalState.pendingId = opt.dataset.id;
+    document.querySelectorAll('.modal-option').forEach(o=>o.classList.remove('active'));
+    opt.classList.add('active');
+  }
+});
+
+document.getElementById('modal-select').addEventListener('click', ()=>{
+  if(modalState.pendingId){ selectItem(modalState.catId, modalState.pendingId); }
+  closeModal();
+});
+document.getElementById('modal-cancel').addEventListener('click', closeModal);
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('modal-overlay').addEventListener('click', e=>{
+  if(e.target.id==='modal-overlay') closeModal();
+});
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape' && document.getElementById('modal-overlay').classList.contains('open')) closeModal();
+});
+
+/* ======================= SELECTION / DOCK ======================= */
+function selectItem(catId, itemId){
+  state.selections[catId] = itemId;
+  saveToStorage();
+  renderBuildGrid();
+  renderDock();
 }
 
 function renderDock(){
@@ -537,48 +615,17 @@ function renderDock(){
 }
 
 function renderAll(){
-  renderCategorySections();
-  renderStepperState();
+  renderBuildGrid();
   renderDock();
 }
 
-/* ======================= EVENTS ======================= */
-function selectItem(catId, itemId){
-  state.selections[catId] = itemId;
-  const item = getItem(catId, itemId);
-  if(item) viewBrand[catId] = item.brand;
-  saveToStorage();
-  renderBrandPills(catId);
-  renderGrid(catId);
-  renderStepperState();
-  renderDock();
-}
-
-document.addEventListener('click', e=>{
-  const pill = e.target.closest('.brand-pill');
-  if(pill){
-    viewBrand[pill.dataset.cat] = pill.dataset.brand;
-    renderBrandPills(pill.dataset.cat);
-    renderGrid(pill.dataset.cat);
-    return;
-  }
-  const card = e.target.closest('.opt-card');
-  if(card){ selectItem(card.dataset.cat, card.dataset.id); }
-});
-document.addEventListener('keydown', e=>{
-  if((e.key==='Enter' || e.key===' ') && e.target.classList && e.target.classList.contains('opt-card')){
-    e.preventDefault();
-    selectItem(e.target.dataset.cat, e.target.dataset.id);
-  }
-});
-
+/* ---- dock actions ---- */
 document.getElementById('btn-share').addEventListener('click', e=>{
   const url = buildShareURL();
   const btn = e.currentTarget;
-  const reset = ()=>{ btn.textContent='Copy share link'; };
   navigator.clipboard.writeText(url).then(()=>{
     btn.textContent='Copied!';
-    setTimeout(reset, 1600);
+    setTimeout(()=>{ btn.textContent='Copy share link'; }, 1600);
   }).catch(()=>{
     prompt('Copy this link:', url);
   });
@@ -633,7 +680,6 @@ function buildPrintSheet(){
 
 /* ======================= INIT ======================= */
 function init(){
-  renderStepperList();
   const urlSel = loadFromURL();
   if(urlSel){
     state.selections = urlSel;
