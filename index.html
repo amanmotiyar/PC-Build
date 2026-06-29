@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BUILDPRINT — Spec your PC like an engineer drew it</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B1E33;
+    --ink-2:#122B47;
+    --ink-3:#0E2538;
+    --paper:#EAF2F8;
+    --muted:#7E9AB5;
+    --copper:#FF8A3D;
+    --cyan:#5FD4D0;
+    --grid-line: rgba(143,180,212,0.10);
+    --redline: #FF6A5C;
+
+    --font-display:'Space Grotesk', sans-serif;
+    --font-body:'Inter', sans-serif;
+    --font-mono:'JetBrains Mono', monospace;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:var(--ink);
+    color:var(--paper);
+    font-family:var(--font-body);
+    line-height:1.6;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 42px 42px;
+    overflow-x:hidden;
+  }
+
+  a{color:inherit; text-decoration:none;}
+
+  :focus-visible{
+    outline:2px solid var(--copper);
+    outline-offset:3px;
+    border-radius:2px;
+  }
+
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 32px;
+  }
+
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:0.72rem;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--cyan);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:7px; height:7px;
+    background:var(--cyan);
+    border-radius:50%;
+    box-shadow:0 0 0 3px rgba(95,212,208,0.18);
+  }
+
+  h1,h2,h3{font-family:var(--font-display); font-weight:600; color:var(--paper);}
+
+  /* ---------- NAV ---------- */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(11,30,51,0.82);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--grid-line);
+  }
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 32px;
+    max-width:1180px; margin:0 auto;
+  }
+  .logo{
+    display:flex; align-items:center; gap:10px;
+    font-family:var(--font-display); font-weight:700; font-size:1.05rem;
+    letter-spacing:0.01em;
+  }
+  .logo svg{display:block;}
+  .nav-links{
+    display:flex; gap:32px;
+    font-family:var(--font-mono); font-size:0.82rem;
+    letter-spacing:0.02em; color:var(--muted);
+  }
+  .nav-links a:hover{color:var(--paper);}
+  .nav-cta{
+    font-family:var(--font-mono); font-size:0.8rem; letter-spacing:0.02em;
+    padding:9px 18px; border:1px solid var(--copper); color:var(--copper);
+    border-radius:3px; transition:background .15s, color .15s;
+    white-space:nowrap;
+  }
+  .nav-cta:hover{background:var(--copper); color:var(--ink);}
+  .nav-toggle{display:none;}
+
+  @media (max-width:780px){
+    .nav-links{display:none;}
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding:88px 0 70px;
+  }
+  .hero-grid{
+    display:grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap:56px;
+    align-items:center;
+  }
+  .hero h1{
+    font-size:clamp(2.3rem, 4.4vw, 3.6rem);
+    line-height:1.08;
+    margin:18px 0 22px;
+    letter-spacing:-0.01em;
+  }
+  .hero h1 em{
+    font-style:normal; color:var(--copper);
+  }
+  .hero p.lede{
+    color:var(--muted);
+    font-size:1.05rem;
+    max-width:480px;
+    margin-bottom:32px;
+  }
+  .hero-ctas{display:flex; gap:14px; flex-wrap:wrap;}
+  .btn{
+    font-family:var(--font-mono); font-size:0.85rem; letter-spacing:0.02em;
+    padding:13px 24px; border-radius:3px; cursor:pointer; border:1px solid transparent;
+    display:inline-flex; align-items:center; gap:8px;
+    transition:transform .15s ease, background .15s, border-color .15s;
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn-primary{background:var(--copper); color:var(--ink);}
+  .btn-primary:hover{background:#ffa05f;}
+  .btn-ghost{border-color:var(--grid-line); color:var(--paper);}
+  .btn-ghost:hover{border-color:var(--muted);}
+
+  .schematic-panel{
+    background:var(--ink-2);
+    border:1px solid var(--grid-line);
+    border-radius:6px;
+    padding:22px;
+    position:relative;
+  }
+  .schematic-panel .tag{
+    font-family:var(--font-mono); font-size:0.68rem; letter-spacing:0.14em;
+    color:var(--muted); text-transform:uppercase;
+    display:flex; justify-content:space-between; margin-bottom:14px;
+  }
+  .schematic-panel .tag span:last-child{color:var(--cyan);}
+
+  svg.diagram{width:100%; height:auto; display:block;}
+  .chip rect.body{fill:var(--ink-3); stroke:var(--muted); stroke-width:1.1;}
+  .chip.center rect.body{fill:var(--ink); stroke:var(--copper); stroke-width:1.6;}
+  .chip .pin1{fill:var(--copper);}
+  .chip .ref{font-family:var(--font-mono); fill:var(--copper); font-size:7.2px; letter-spacing:0.04em;}
+  .chip .name{font-family:var(--font-mono); fill:var(--paper); font-size:9.5px; font-weight:600;}
+  .chip .spec{font-family:var(--font-mono); fill:var(--muted); font-size:7.8px;}
+  .pad{fill:var(--paper); opacity:0.85;}
+  .via{fill:var(--cyan);}
+  .crop{stroke:var(--grid-line); stroke-width:1; fill:none;}
+  .titleblock{
+    display:flex; justify-content:space-between;
+    font-family:var(--font-mono); font-size:0.62rem; letter-spacing:0.08em;
+    color:var(--muted); padding-top:10px; margin-top:4px;
+    border-top:1px solid var(--grid-line);
+  }
+  .titleblock span:nth-child(2){color:var(--cyan);}
+  .trace{
+    fill:none; stroke:var(--cyan); stroke-width:1.3;
+    stroke-dasharray:100 100; stroke-dashoffset:100;
+    animation:draw 1s ease forwards;
+  }
+  .trace:nth-of-type(2){animation-delay:.12s;}
+  .trace:nth-of-type(3){animation-delay:.24s;}
+  .trace:nth-of-type(4){animation-delay:.36s;}
+  .trace:nth-of-type(5){animation-delay:.48s;}
+  .trace:nth-of-type(6){animation-delay:.6s;}
+  @keyframes draw{ to { stroke-dashoffset:0; } }
+
+  .readout{
+    margin-top:14px;
+    padding-top:2px;
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:14px;
+  }
+  .readout .figure{font-family:var(--font-mono);}
+  .readout .figure .label{font-size:0.62rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase;}
+  .readout .figure .value{font-size:1.05rem; color:var(--paper); margin-top:3px;}
+  .readout .figure .value.status{color:var(--cyan);}
+  .readout .figure .value.status::after{
+    content:"_"; animation:blink 1s step-end infinite; color:var(--cyan);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .trace{animation:none; stroke-dashoffset:0;}
+    .readout .figure .value.status::after{animation:none;}
+  }
+
+  @keyframes blink{ 50%{opacity:0;} }
+
+  @media (max-width:980px){
+    .hero-grid{grid-template-columns:1fr;}
+    .readout{grid-template-columns:1fr 1fr;}
+  }
+
+  /* ---------- SECTION SHELL ---------- */
+  section{padding:84px 0;}
+  .section-head{
+    max-width:620px; margin-bottom:52px;
+  }
+  .section-head h2{font-size:clamp(1.7rem,2.8vw,2.3rem); margin-top:14px;}
+  .section-head p{color:var(--muted); margin-top:14px; font-size:1rem;}
+
+  .divider{
+    height:1px; background:var(--grid-line); border:none;
+  }
+
+  /* ---------- PROCESS / STAMPS ---------- */
+  .stamps{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:28px;
+  }
+  .stamp{
+    border:1px dashed var(--grid-line);
+    border-radius:6px;
+    padding:26px 22px;
+    position:relative;
+  }
+  .stamp-mark{
+    display:inline-block;
+    font-family:var(--font-mono);
+    font-size:0.72rem;
+    letter-spacing:0.14em;
+    padding:5px 10px;
+    border:1.5px solid var(--copper);
+    color:var(--copper);
+    border-radius:3px;
+    transform:rotate(-3deg);
+    margin-bottom:18px;
+  }
+  .stamp h3{font-size:1.05rem; margin-bottom:10px; font-family:var(--font-mono); letter-spacing:0.01em;}
+  .stamp p{color:var(--muted); font-size:0.93rem;}
+
+  @media (max-width:860px){ .stamps{grid-template-columns:1fr;} }
+
+  /* ---------- CATEGORIES ---------- */
+  .cats{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+    background:var(--grid-line);
+    border:1px solid var(--grid-line);
+    border-radius:6px;
+    overflow:hidden;
+  }
+  .cat{
+    background:var(--ink);
+    padding:24px 22px;
+    transition:background .15s;
+  }
+  .cat:hover{background:var(--ink-2);}
+  .cat .pn{
+    font-family:var(--font-mono); font-size:0.68rem; color:var(--copper); letter-spacing:0.08em;
+  }
+  .cat h3{font-size:1rem; margin:10px 0 8px; font-family:var(--font-display);}
+  .cat p{font-size:0.86rem; color:var(--muted);}
+
+  @media (max-width:980px){ .cats{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:560px){ .cats{grid-template-columns:1fr;} }
+
+  /* ---------- COMPATIBILITY / REDLINE ---------- */
+  .compat{
+    display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:center;
+  }
+  .compat-copy p{color:var(--muted); margin-top:14px;}
+  .compat-copy ul{margin-top:20px; padding-left:0; list-style:none;}
+  .compat-copy li{
+    font-family:var(--font-mono); font-size:0.86rem; color:var(--paper);
+    padding:10px 0; border-top:1px solid var(--grid-line);
+    display:flex; gap:10px;
+  }
+  .compat-copy li::before{content:"›"; color:var(--cyan);}
+
+  .redline-panel{
+    background:var(--ink-2); border:1px solid var(--grid-line); border-radius:6px;
+    padding:24px; position:relative;
+  }
+  .redline-panel svg{width:100%; height:auto; display:block;}
+
+  @media (max-width:900px){ .compat{grid-template-columns:1fr;} }
+
+  /* ---------- PRICING TABLE ---------- */
+  .price-table{
+    width:100%; border-collapse:collapse;
+    font-family:var(--font-mono); font-size:0.86rem;
+  }
+  .price-table th{
+    text-align:left; color:var(--muted); font-weight:400;
+    font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase;
+    padding:10px 14px; border-bottom:1px solid var(--grid-line);
+  }
+  .price-table td{
+    padding:14px 14px; border-bottom:1px solid var(--grid-line);
+  }
+  .price-table td.best{color:var(--cyan);}
+  .price-table tr:hover td{background:rgba(255,255,255,0.015);}
+  .sync-note{
+    margin-top:14px; color:var(--muted); font-size:0.8rem; font-family:var(--font-mono);
+  }
+
+  /* ---------- FOOTER CTA ---------- */
+  .cta-band{
+    text-align:center; padding:90px 0;
+    border-top:1px solid var(--grid-line);
+  }
+  .cta-band h2{font-size:clamp(1.8rem,3.4vw,2.6rem); max-width:640px; margin:0 auto 26px;}
+
+  footer{
+    border-top:1px solid var(--grid-line);
+    padding:36px 0;
+  }
+  .foot-row{
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;
+  }
+  .foot-links{display:flex; gap:24px; font-family:var(--font-mono); font-size:0.8rem; color:var(--muted);}
+  .foot-links a:hover{color:var(--paper);}
+  .foot-copy{font-family:var(--font-mono); font-size:0.78rem; color:var(--muted);}
+</style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <div class="logo">
+      <svg width="22" height="22" viewBox="0 0 22 22">
+        <polygon points="11,1 20,6 20,16 11,21 2,16 2,6" fill="none" stroke="#FF8A3D" stroke-width="1.4"/>
+        <circle cx="11" cy="11" r="2.4" fill="#FF8A3D"/>
+      </svg>
+      BUILDPRINT
+    </div>
+    <div class="nav-links">
+      <a href="#process">Process</a>
+      <a href="#parts">Parts</a>
+      <a href="#compatibility">Compatibility</a>
+      <a href="#pricing">Pricing</a>
+    </div>
+    <a href="#" class="nav-cta">Start a build</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">SCHEMATIC // GAMING-PC-01</p>
+        <h1>Spec your build<br>like an <em>engineer</em> drew it.</h1>
+        <p class="lede">Pick every part from preferred and alternative tiers, watch each pairing get checked line by line, and walk away with a real spec sheet and a price — not a guess.</p>
+        <div class="hero-ctas">
+          <a href="#" class="btn btn-primary">Start a build →</a>
+          <a href="#process" class="btn btn-ghost">See how it's checked</a>
+        </div>
+      </div>
+
+      <div class="schematic-panel">
+        <div class="tag"><span>DRAWING — RIG.001</span><span>● LIVE</span></div>
+
+        <svg class="diagram" viewBox="0 0 600 380" xmlns="http://www.w3.org/2000/svg">
+          <!-- crop marks -->
+          <g class="crop">
+            <path d="M10,18 H22 M18,10 V22"/>
+            <path d="M578,18 H590 M582,10 V22"/>
+            <path d="M10,362 H22 M14,358 V370"/>
+            <path d="M578,362 H590 M582,358 V370"/>
+          </g>
+
+          <!-- routed traces with chamfered bends -->
+          <path class="trace" pathLength="100" d="M283,153 L283,128 L220,100 L182,100"/>
+          <path class="trace" pathLength="100" d="M317,153 L317,128 L380,100 L418,100"/>
+          <path class="trace" pathLength="100" d="M337,190 L537,190"/>
+          <path class="trace" pathLength="100" d="M317,227 L317,252 L380,280 L418,280"/>
+          <path class="trace" pathLength="100" d="M283,227 L283,252 L220,280 L182,280"/>
+          <path class="trace" pathLength="100" d="M263,190 L67,190"/>
+
+          <!-- vias -->
+          <circle class="via" cx="283" cy="128" r="2.2"/>
+          <circle class="via" cx="220" cy="100" r="2.2"/>
+          <circle class="via" cx="317" cy="128" r="2.2"/>
+          <circle class="via" cx="380" cy="100" r="2.2"/>
+          <circle class="via" cx="317" cy="252" r="2.2"/>
+          <circle class="via" cx="380" cy="280" r="2.2"/>
+          <circle class="via" cx="283" cy="252" r="2.2"/>
+          <circle class="via" cx="220" cy="280" r="2.2"/>
+          <circle class="via" cx="165" cy="190" r="2"/>
+          <circle class="via" cx="435" cy="190" r="2"/>
+
+          <!-- solder pads -->
+          <rect class="pad" x="280.5" y="150.5" width="5" height="5"/>
+          <rect class="pad" x="314.5" y="150.5" width="5" height="5"/>
+          <rect class="pad" x="280.5" y="224.5" width="5" height="5"/>
+          <rect class="pad" x="314.5" y="224.5" width="5" height="5"/>
+          <rect class="pad" x="260.5" y="187.5" width="5" height="5"/>
+          <rect class="pad" x="334.5" y="187.5" width="5" height="5"/>
+          <rect class="pad" x="179.5" y="97.5" width="5" height="5"/>
+          <rect class="pad" x="415.5" y="97.5" width="5" height="5"/>
+          <rect class="pad" x="179.5" y="277.5" width="5" height="5"/>
+          <rect class="pad" x="415.5" y="277.5" width="5" height="5"/>
+          <rect class="pad" x="64.5" y="187.5" width="5" height="5"/>
+          <rect class="pad" x="534.5" y="187.5" width="5" height="5"/>
+
+          <!-- center socket -->
+          <g class="chip center">
+            <rect class="body" x="263" y="153" width="74" height="74" rx="4"/>
+            <circle class="pin1" cx="270" cy="160" r="2.4"/>
+            <text class="ref" x="300" y="172" text-anchor="middle">U0</text>
+            <text class="name" x="300" y="194" text-anchor="middle">YOUR RIG</text>
+            <text class="spec" x="300" y="208" text-anchor="middle">7 NODES</text>
+          </g>
+
+          <!-- CPU -->
+          <g class="chip">
+            <rect class="body" x="98" y="56" width="84" height="44" rx="3"/>
+            <circle class="pin1" cx="103" cy="61" r="2"/>
+            <text class="ref" x="140" y="70" text-anchor="middle">U1 · CPU</text>
+            <text class="name" x="140" y="83" text-anchor="middle">RYZEN 7</text>
+            <text class="spec" x="140" y="94" text-anchor="middle">9800X3D</text>
+          </g>
+
+          <!-- GPU -->
+          <g class="chip">
+            <rect class="body" x="418" y="56" width="84" height="44" rx="3"/>
+            <circle class="pin1" cx="423" cy="61" r="2"/>
+            <text class="ref" x="460" y="70" text-anchor="middle">U2 · GPU</text>
+            <text class="name" x="460" y="83" text-anchor="middle">RTX 5070 Ti</text>
+            <text class="spec" x="460" y="94" text-anchor="middle">16GB GDDR7</text>
+          </g>
+
+          <!-- PSU -->
+          <g class="chip">
+            <rect class="body" x="98" y="280" width="84" height="44" rx="3"/>
+            <circle class="pin1" cx="103" cy="285" r="2"/>
+            <text class="ref" x="140" y="294" text-anchor="middle">U3 · PSU</text>
+            <text class="name" x="140" y="307" text-anchor="middle">1000W</text>
+            <text class="spec" x="140" y="318" text-anchor="middle">80+ GOLD</text>
+          </g>
+
+          <!-- SSD -->
+          <g class="chip">
+            <rect class="body" x="418" y="280" width="84" height="44" rx="3"/>
+            <circle class="pin1" cx="423" cy="285" r="2"/>
+            <text class="ref" x="460" y="294" text-anchor="middle">U4 · SSD</text>
+            <text class="name" x="460" y="307" text-anchor="middle">2TB NVME</text>
+            <text class="spec" x="460" y="318" text-anchor="middle">PCIE GEN4</text>
+          </g>
+
+          <!-- CASE -->
+          <g class="chip">
+            <rect class="body" x="33" y="135" width="34" height="110" rx="3"/>
+            <circle class="pin1" cx="38" cy="140" r="2"/>
+            <text class="ref" x="50" y="258" text-anchor="middle">U5 · CASE</text>
+            <text class="name" x="50" y="271" text-anchor="middle">MID TOWER</text>
+            <text class="spec" x="50" y="282" text-anchor="middle">400MM CLR</text>
+          </g>
+
+          <!-- RAM -->
+          <g class="chip">
+            <rect class="body" x="537" y="130" width="26" height="120" rx="3"/>
+            <circle class="pin1" cx="540" cy="135" r="2"/>
+            <text class="ref" x="550" y="263" text-anchor="middle">U6 · RAM</text>
+            <text class="name" x="550" y="276" text-anchor="middle">32GB DDR5</text>
+            <text class="spec" x="550" y="287" text-anchor="middle">6000 CL30</text>
+          </g>
+        </svg>
+
+        <div class="titleblock">
+          <span>SHEET A1</span><span>SCALE NTS</span><span>REV B</span>
+        </div>
+
+        <div class="readout">
+          <div class="figure">
+            <div class="label">Total</div>
+            <div class="value">₹1,42,300</div>
+          </div>
+          <div class="figure">
+            <div class="label">Est. draw</div>
+            <div class="value">612W</div>
+          </div>
+          <div class="figure">
+            <div class="label">Status</div>
+            <div class="value status">CHECKED</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- PROCESS -->
+  <section id="process">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">HOW IT'S DRAWN UP</p>
+        <h2>Three passes, same as any real drawing.</h2>
+        <p>Nothing on the sheet is final until it's been through all three.</p>
+      </div>
+
+      <div class="stamps">
+        <div class="stamp">
+          <span class="stamp-mark">DRAFT</span>
+          <h3>Pick the parts</h3>
+          <p>Work through CPU, board, memory, storage, power and case — each with a preferred pick up front and ranked alternatives behind it, the way a real spec sheet is written.</p>
+        </div>
+        <div class="stamp">
+          <span class="stamp-mark">CHECKED</span>
+          <h3>Every pairing gets reviewed</h3>
+          <p>Socket, clearance, wattage headroom, RAM speed support, BIOS flashback — checked against each other automatically before a build is allowed to call itself final.</p>
+        </div>
+        <div class="stamp">
+          <span class="stamp-mark">FINAL</span>
+          <h3>Export and compare</h3>
+          <p>Download the full spec sheet, see prices compared across retailers, and share the build with a link — or take the sheet straight to a local shop.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- CATEGORIES -->
+  <section id="parts">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">EVERY PART, SPECIFIED</p>
+        <h2>Nothing is "just a GPU."</h2>
+        <p>Every category carries the detail a real build needs — not just a brand name.</p>
+      </div>
+
+      <div class="cats">
+        <div class="cat">
+          <div class="pn">PN—01</div>
+          <h3>CPU</h3>
+          <p>Sized to the games and the workload, not just the core count.</p>
+        </div>
+        <div class="cat">
+          <div class="pn">PN—02</div>
+          <h3>CPU Cooler</h3>
+          <p>Air or liquid, chosen against the case's clearance first.</p>
+        </div>
+        <div class="cat">
+          <div class="pn">PN—03</div>
+          <h3>GPU</h3>
+          <p>Ranked by real availability and cooler quality, not just a benchmark chart.</p>
+        </div>
+        <div class="cat">
+          <div class="pn">PN—04</div>
+          <h3>Motherboard</h3>
+          <p>Chipset, BIOS flashback and PCIe generation checked against everything else.</p>
+        </div>
+        <div class="cat">
+          <div class="pn">PN—05</div>
+          <h3>RAM</h3>
+          <p>Speed and latency matched to what the platform actually supports.</p>
+        </div>
+        <div class="cat">
+          <div class="pn">PN—06</div>
+          <h3>Storage</h3>
+          <p>NVMe generation and DRAM cache called out plainly, not buried in a SKU name.</p>
+        </div>
+        <div class="cat">
+          <div class="pn">PN—07</div>
+          <h3>PSU</h3>
+          <p>Wattage headroom calculated from your actual parts, not a rule of thumb.</p>
+        </div>
+        <div class="cat">
+          <div class="pn">PN—08</div>
+          <h3>Case &amp; fans</h3>
+          <p>Airflow and GPU clearance checked before you fall for the looks.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- COMPATIBILITY / REDLINE -->
+  <section id="compatibility">
+    <div class="wrap compat">
+      <div class="compat-copy">
+        <p class="eyebrow">THE REVIEW PASS</p>
+        <h2>Caught before it's a problem at the desk.</h2>
+        <p>Every build gets redlined the way an engineer would mark up a drawing — a flag on the exact pairing that's wrong, and what to swap in its place.</p>
+        <ul>
+          <li>Cabinet GPU clearance checked against the card's actual length</li>
+          <li>PSU wattage checked with real headroom, not a flat margin</li>
+          <li>RAM speed checked against what the board and CPU actually support</li>
+        </ul>
+      </div>
+
+      <div class="redline-panel">
+        <div class="tag" style="display:flex; justify-content:space-between; font-family:'JetBrains Mono'; font-size:0.68rem; color:var(--muted); letter-spacing:0.1em; margin-bottom:10px;">
+          <span>REVIEW — RIG.001 / REV B</span><span style="color:var(--redline);">1 FLAG</span>
+        </div>
+        <svg viewBox="0 0 520 280" xmlns="http://www.w3.org/2000/svg">
+          <!-- cabinet outline -->
+          <rect x="60" y="40" width="160" height="200" rx="4" fill="none" stroke="#7E9AB5" stroke-width="1.2"/>
+          <text x="140" y="30" text-anchor="middle" fill="#7E9AB5" font-family="JetBrains Mono" font-size="9">CABINET — CLEARANCE 320MM</text>
+
+          <!-- gpu rect inside, slightly overflowing -->
+          <rect x="80" y="120" width="190" height="46" rx="3" fill="#0E2538" stroke="#FF8A3D" stroke-width="1.4"/>
+          <text x="175" y="148" text-anchor="middle" fill="#EAF2F8" font-family="JetBrains Mono" font-size="9">RTX 5070 Ti — 336MM</text>
+
+          <!-- redline annotation -->
+          <line x1="270" y1="143" x2="380" y2="100" stroke="#FF6A5C" stroke-width="1.2" stroke-dasharray="4 4"/>
+          <circle cx="270" cy="143" r="3" fill="#FF6A5C"/>
+          <rect x="330" y="55" width="175" height="80" rx="4" fill="#122B47" stroke="#FF6A5C" stroke-width="1.2"/>
+          <text x="345" y="74" fill="#FF6A5C" font-family="JetBrains Mono" font-size="9" font-weight="600">FLAG — CLEARANCE</text>
+          <text x="345" y="91" fill="#EAF2F8" font-family="JetBrains Mono" font-size="8.5">Card is 16mm longer than</text>
+          <text x="345" y="103" fill="#EAF2F8" font-family="JetBrains Mono" font-size="8.5">cabinet allows.</text>
+          <text x="345" y="119" fill="#5FD4D0" font-family="JetBrains Mono" font-size="8.5">→ try Lian Li Lancool 216</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">PRICING</p>
+        <h2>Compared across retailers, not just one tab.</h2>
+        <p>Every part shows a price from more than one source, with the moment it was last synced — so you know how fresh the number is.</p>
+      </div>
+
+      <table class="price-table">
+        <thead>
+          <tr>
+            <th>Component</th>
+            <th>Retailer A</th>
+            <th>Retailer B</th>
+            <th>Retailer C</th>
+            <th>Last synced</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>RTX 5070 Ti — ASUS TUF</td>
+            <td>₹74,990</td>
+            <td class="best">₹72,450</td>
+            <td>₹75,800</td>
+            <td>14 min ago</td>
+          </tr>
+          <tr>
+            <td>Ryzen 7 9800X3D</td>
+            <td class="best">₹42,990</td>
+            <td>₹43,650</td>
+            <td>₹44,100</td>
+            <td>22 min ago</td>
+          </tr>
+          <tr>
+            <td>WD Black SN850X 2TB</td>
+            <td>₹13,499</td>
+            <td>₹13,299</td>
+            <td class="best">₹12,950</td>
+            <td>8 min ago</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="sync-note">Prices shown are sample figures for layout — live sync connects to retailer feeds once parts data is wired up.</p>
+    </div>
+  </section>
+
+  <!-- CTA BAND -->
+  <section class="cta-band">
+    <div class="wrap">
+      <h2>Draw up your first build.</h2>
+      <a href="#" class="btn btn-primary">Start a build →</a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot-row">
+    <div class="logo">
+      <svg width="18" height="18" viewBox="0 0 22 22">
+        <polygon points="11,1 20,6 20,16 11,21 2,16 2,6" fill="none" stroke="#FF8A3D" stroke-width="1.4"/>
+        <circle cx="11" cy="11" r="2.4" fill="#FF8A3D"/>
+      </svg>
+      BUILDPRINT
+    </div>
+    <div class="foot-links">
+      <a href="#process">Process</a>
+      <a href="#parts">Parts</a>
+      <a href="#compatibility">Compatibility</a>
+      <a href="#pricing">Pricing</a>
+    </div>
+    <div class="foot-copy">© 2026 BUILDPRINT. Specs drawn properly.</div>
+  </div>
+</footer>
+
+<script>
+  // Count-up animation for hero readout, respecting reduced motion
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const totalEl = document.querySelector('.readout .figure:nth-child(1) .value');
+  const wattEl = document.querySelector('.readout .figure:nth-child(2) .value');
+
+  function countUp(el, end, prefix, suffix, duration){
+    if(prefersReduced){ el.textContent = prefix + end.toLocaleString('en-IN') + suffix; return; }
+    const start = performance.now();
+    function frame(now){
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const val = Math.round(end * eased);
+      el.textContent = prefix + val.toLocaleString('en-IN') + suffix;
+      if(t < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    if(totalEl) countUp(totalEl, 142300, '₹', '', 1100);
+    if(wattEl) countUp(wattEl, 612, '', 'W', 1100);
+  });
+</script>
+
+</body>
+</html>
