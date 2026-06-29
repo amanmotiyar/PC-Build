@@ -28,7 +28,8 @@ import {
   RotateCcw,
   Search,
   Gauge,
-  FolderOpen
+  FolderOpen,
+  Palette
 } from "lucide-react";
 var DATA = {
   cpu: [
@@ -816,8 +817,80 @@ function BuildStage({ selections, activeCat, issues, onSelectCat }) {
     );
   })), hint && /* @__PURE__ */ React.createElement("div", { className: "stage-hint" }, "Drag to rotate \\u00b7 scroll to zoom"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "stage-reset", onClick: resetView, title: "Reset view" }, /* @__PURE__ */ React.createElement(RotateCcw, { size: 13 })));
 }
+var THEMES = {
+  circuit: {
+    label: "Circuit Dark",
+    swatch: ["#0F1115", "#C9824A", "#4FD8C9"],
+    "--bg": "#0F1115",
+    "--panel": "#161A20",
+    "--panel-2": "#1C212A",
+    "--line": "#262C36",
+    "--copper": "#C9824A",
+    "--copper-soft": "#E3A872",
+    "--cyan": "#4FD8C9",
+    "--red": "#F2545B",
+    "--amber": "#E8B339",
+    "--text": "#ECEAE4",
+    "--text-dim": "#9098A6"
+  },
+  blueprint: {
+    label: "Blueprint",
+    swatch: ["#EAF0F6", "#B5703A", "#0E7C8C"],
+    "--bg": "#EAF0F6",
+    "--panel": "#FFFFFF",
+    "--panel-2": "#F1F5F9",
+    "--line": "#D3DCE6",
+    "--copper": "#B5703A",
+    "--copper-soft": "#8C5429",
+    "--cyan": "#0E7C8C",
+    "--red": "#C23B43",
+    "--amber": "#B07A12",
+    "--text": "#1B2430",
+    "--text-dim": "#5B6776"
+  },
+  slate: {
+    label: "Slate Light",
+    swatch: ["#F6F7F9", "#A8632E", "#1F9C8C"],
+    "--bg": "#F6F7F9",
+    "--panel": "#FFFFFF",
+    "--panel-2": "#EEF1F4",
+    "--line": "#DDE1E6",
+    "--copper": "#A8632E",
+    "--copper-soft": "#7E4A20",
+    "--cyan": "#1F9C8C",
+    "--red": "#D63A42",
+    "--amber": "#C98D1E",
+    "--text": "#1A1F26",
+    "--text-dim": "#5B6472"
+  },
+  terminal: {
+    label: "Terminal Phosphor",
+    swatch: ["#0A0D0A", "#39FF88", "#39FF88"],
+    "--bg": "#0A0D0A",
+    "--panel": "#10140F",
+    "--panel-2": "#161B14",
+    "--line": "#23291F",
+    "--copper": "#39FF88",
+    "--copper-soft": "#7CFFB0",
+    "--cyan": "#39FF88",
+    "--red": "#FF5C5C",
+    "--amber": "#E8D339",
+    "--text": "#D8FCE3",
+    "--text-dim": "#6F9C7E"
+  }
+};
+function themeVars(themeKey) {
+  const t = THEMES[themeKey] || THEMES.circuit;
+  const vars = {};
+  Object.keys(t).forEach((k) => {
+    if (k.startsWith("--")) vars[k] = t[k];
+  });
+  return vars;
+}
 function App() {
   const [activeCat, setActiveCat] = useState("cpu");
+  const [theme, setTheme] = useState("circuit");
+  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const [selections, setSelections] = useState({});
   const [buildName, setBuildName] = useState("My Build");
   const [search, setSearch] = useState("");
@@ -835,6 +908,24 @@ function App() {
     setToast(msg);
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), 2600);
+  }
+  useEffect(() => {
+    if (!hasStorage()) return;
+    (async () => {
+      try {
+        const res = await window.storage.get("trace-theme", false);
+        if (res?.value && THEMES[res.value]) setTheme(res.value);
+      } catch (e) {
+      }
+    })();
+  }, []);
+  function changeTheme(key) {
+    setTheme(key);
+    setThemeMenuOpen(false);
+    if (hasStorage()) {
+      window.storage.set("trace-theme", key, false).catch(() => {
+      });
+    }
   }
   useEffect(() => {
     async function load() {
@@ -966,7 +1057,7 @@ function App() {
       showToast(`Code: ${shareCode}`);
     }
   }
-  return /* @__PURE__ */ React.createElement("div", { className: "trace-root" }, /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("header", { className: "header" }, /* @__PURE__ */ React.createElement("div", { className: "brand" }, /* @__PURE__ */ React.createElement("span", { className: "brand-mark" }, /* @__PURE__ */ React.createElement(CircuitBoard, { size: 18, strokeWidth: 2.2 })), /* @__PURE__ */ React.createElement("span", { className: "brand-name" }, "TRACE"), /* @__PURE__ */ React.createElement("span", { className: "brand-tag" }, "build the circuit")), /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { className: "trace-root", style: themeVars(theme) }, /* @__PURE__ */ React.createElement("style", null, CSS), /* @__PURE__ */ React.createElement("header", { className: "header" }, /* @__PURE__ */ React.createElement("div", { className: "brand" }, /* @__PURE__ */ React.createElement("span", { className: "brand-mark" }, /* @__PURE__ */ React.createElement(CircuitBoard, { size: 18, strokeWidth: 2.2 })), /* @__PURE__ */ React.createElement("span", { className: "brand-name" }, "TRACE"), /* @__PURE__ */ React.createElement("span", { className: "brand-tag" }, "build the circuit")), /* @__PURE__ */ React.createElement(
     "input",
     {
       className: "build-name-input",
@@ -974,7 +1065,21 @@ function App() {
       onChange: (e) => setBuildName(e.target.value),
       "aria-label": "Build name"
     }
-  ), /* @__PURE__ */ React.createElement("div", { className: "header-actions" }, /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost", onClick: resetBuild, type: "button" }, /* @__PURE__ */ React.createElement(RotateCcw, { size: 14 }), " New"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost", onClick: () => setSavePanelOpen((v) => !v), type: "button" }, /* @__PURE__ */ React.createElement(FolderOpen, { size: 14 }), " My builds"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-outline", onClick: () => setSavePanelOpen("save"), type: "button" }, /* @__PURE__ */ React.createElement(Save, { size: 14 }), " Save"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-copper", onClick: () => {
+  ), /* @__PURE__ */ React.createElement("div", { className: "header-actions" }, /* @__PURE__ */ React.createElement("div", { className: "theme-switcher" }, /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost", onClick: () => setThemeMenuOpen((v) => !v), type: "button" }, /* @__PURE__ */ React.createElement(Palette, { size: 14 }), " Theme"), themeMenuOpen && /* @__PURE__ */ React.createElement("div", { className: "theme-menu", onMouseLeave: () => setThemeMenuOpen(false) }, Object.keys(THEMES).map((key) => {
+    const t = THEMES[key];
+    return /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        key,
+        type: "button",
+        className: `theme-option ${theme === key ? "theme-option-active" : ""}`,
+        onClick: () => changeTheme(key)
+      },
+      /* @__PURE__ */ React.createElement("span", { className: "theme-swatch" }, t.swatch.map((c, i) => /* @__PURE__ */ React.createElement("span", { key: i, style: { background: c } }))),
+      /* @__PURE__ */ React.createElement("span", { className: "theme-option-label" }, t.label),
+      theme === key && /* @__PURE__ */ React.createElement(Check, { size: 13 })
+    );
+  }))), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost", onClick: resetBuild, type: "button" }, /* @__PURE__ */ React.createElement(RotateCcw, { size: 14 }), " New"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-ghost", onClick: () => setSavePanelOpen((v) => !v), type: "button" }, /* @__PURE__ */ React.createElement(FolderOpen, { size: 14 }), " My builds"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-outline", onClick: () => setSavePanelOpen("save"), type: "button" }, /* @__PURE__ */ React.createElement(Save, { size: 14 }), " Save"), /* @__PURE__ */ React.createElement("button", { className: "btn btn-copper", onClick: () => {
     setSharePanelOpen(true);
     setShareCode(null);
   }, type: "button" }, /* @__PURE__ */ React.createElement(Share2, { size: 14 }), " Share"))), /* @__PURE__ */ React.createElement("div", { className: "layout" }, /* @__PURE__ */ React.createElement("nav", { className: "rail", "aria-label": "Component categories" }, /* @__PURE__ */ React.createElement("div", { className: "rail-progress" }, /* @__PURE__ */ React.createElement("span", { className: "mono" }, filledRequired, "/", REQUIRED_IDS.length), " core parts", /* @__PURE__ */ React.createElement("div", { className: "rail-progress-bar" }, /* @__PURE__ */ React.createElement("div", { className: "rail-progress-fill", style: { width: `${filledRequired / REQUIRED_IDS.length * 100}%` } }))), CATEGORIES.map((cat) => {
@@ -1100,7 +1205,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outl
   display: flex; align-items: center; gap: 16px;
   padding: 14px 20px;
   border-bottom: 1px solid var(--line);
-  background: rgba(15,17,21,0.92);
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
   backdrop-filter: blur(6px);
   position: sticky; top: 0; z-index: 20;
   flex-wrap: wrap;
@@ -1115,6 +1220,24 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outl
   border-radius: 7px; padding: 7px 11px; font-size: 13px; font-weight: 500;
 }
 .header-actions { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+
+.theme-switcher { position: relative; }
+.theme-menu {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 30;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 6px; display: flex; flex-direction: column; gap: 2px; min-width: 200px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+}
+.theme-option {
+  display: flex; align-items: center; gap: 9px; background: transparent; border: 1px solid transparent;
+  border-radius: 7px; padding: 7px 9px; text-align: left; color: var(--text); font-size: 12.5px; font-weight: 500;
+}
+.theme-option:hover { background: var(--panel-2); }
+.theme-option-active { border-color: var(--copper); }
+.theme-option-label { flex: 1; }
+.theme-option svg { color: var(--copper-soft); }
+.theme-swatch { display: flex; border-radius: 5px; overflow: hidden; width: 28px; height: 18px; flex-shrink: 0; border: 1px solid var(--line); }
+.theme-swatch span { flex: 1; height: 100%; }
 
 .btn {
   display: inline-flex; align-items: center; gap: 6px;
@@ -1136,7 +1259,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outl
 .layout { display: grid; grid-template-columns: 228px 1fr 360px; min-height: calc(100vh - 64px); }
 
 /* ---- rail ---- */
-.rail { border-right: 1px solid var(--line); padding: 16px 10px; display: flex; flex-direction: column; gap: 3px; background: rgba(22,26,32,0.4); }
+.rail { border-right: 1px solid var(--line); padding: 16px 10px; display: flex; flex-direction: column; gap: 3px; background: color-mix(in srgb, var(--panel) 40%, transparent); }
 .rail-progress { font-size: 11px; color: var(--text-dim); padding: 2px 10px 14px; }
 .rail-progress-bar { margin-top: 6px; height: 4px; background: var(--line); border-radius: 4px; overflow: hidden; }
 .rail-progress-fill { height: 100%; background: var(--copper); transition: width .3s ease; }
@@ -1156,9 +1279,9 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outl
 
 .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .dot-empty { background: #333a45; }
-.dot-ok { background: var(--cyan); box-shadow: 0 0 6px rgba(79,216,201,0.6); }
-.dot-warn { background: var(--amber); box-shadow: 0 0 6px rgba(232,179,57,0.5); }
-.dot-error { background: var(--red); box-shadow: 0 0 6px rgba(242,84,91,0.6); }
+.dot-ok { background: var(--cyan); box-shadow: 0 0 6px color-mix(in srgb, var(--cyan) 60%, transparent); }
+.dot-warn { background: var(--amber); box-shadow: 0 0 6px color-mix(in srgb, var(--amber) 55%, transparent); }
+.dot-error { background: var(--red); box-shadow: 0 0 6px color-mix(in srgb, var(--red) 60%, transparent); }
 
 /* ---- main ---- */
 .main { padding: 24px 28px 80px; min-width: 0; }
@@ -1226,7 +1349,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outl
   display: flex; flex-direction: column; gap: 8px; transition: border-color .15s ease, transform .12s ease;
 }
 .opt-card:hover { border-color: #3a424f; transform: translateY(-1px); }
-.opt-card-selected { border-color: var(--cyan); background: linear-gradient(180deg, rgba(79,216,201,0.07), transparent); }
+.opt-card-selected { border-color: var(--cyan); background: linear-gradient(180deg, color-mix(in srgb, var(--cyan) 8%, transparent), transparent); }
 .opt-top { display: flex; justify-content: space-between; align-items: center; }
 .opt-brand { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); font-weight: 600; }
 .opt-name { font-size: 14px; font-weight: 600; line-height: 1.3; }
@@ -1238,7 +1361,7 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outl
 .opt-selected-badge { display: flex; align-items: center; gap: 5px; color: var(--cyan); font-size: 11px; font-weight: 600; }
 
 /* ---- ticket ---- */
-.ticket { border-left: 1px solid var(--line); background: rgba(22,26,32,0.5); padding: 18px 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+.ticket { border-left: 1px solid var(--line); background: color-mix(in srgb, var(--panel) 50%, transparent); padding: 18px 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
 .ticket-header { display: flex; justify-content: space-between; align-items: baseline; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 15px; }
 .ticket-total { font-size: 19px; color: var(--copper-soft); }
 
@@ -1271,8 +1394,8 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--cyan); outl
 .issues-block { display: flex; flex-direction: column; gap: 7px; }
 .issue-ok { display: flex; align-items: center; gap: 7px; color: var(--cyan); font-size: 12.5px; }
 .issue-row { display: flex; align-items: flex-start; gap: 7px; font-size: 12px; padding: 8px 9px; border-radius: 7px; line-height: 1.4; }
-.issue-error { background: rgba(242,84,91,0.1); color: #FF9DA2; }
-.issue-warn { background: rgba(232,179,57,0.1); color: #F0CB7A; }
+.issue-error { background: color-mix(in srgb, var(--red) 12%, transparent); color: var(--red); }
+.issue-warn { background: color-mix(in srgb, var(--amber) 14%, transparent); color: var(--amber); }
 .issue-row svg { flex-shrink: 0; margin-top: 1px; }
 
 .ticket-footer-actions { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
