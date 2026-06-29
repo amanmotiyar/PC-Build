@@ -968,6 +968,18 @@ function renderDock(){
     flagsContainer.style.display = 'none';
     flagsContainer.innerHTML = '';
   }
+  syncDockPadding();
+}
+
+function syncDockPadding(){
+  const dock = document.querySelector('.dock');
+  if(!dock) return;
+  document.body.style.paddingBottom = (dock.offsetHeight + 24) + 'px';
+}
+window.addEventListener('resize', syncDockPadding);
+window.addEventListener('load', syncDockPadding);
+if(document.fonts && document.fonts.ready){
+  document.fonts.ready.then(syncDockPadding);
 }
 
 function renderAll(){
