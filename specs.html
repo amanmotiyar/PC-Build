@@ -40,26 +40,26 @@
     background:rgba(11,30,51,0.92); backdrop-filter:blur(10px);
     border-bottom:1px solid var(--grid-line);
   }
-  nav{ display:flex; align-items:center; justify-content:space-between; padding:16px 28px; max-width:1280px; margin:0 auto; }
+  nav{ display:flex; align-items:center; justify-content:space-between; padding:16px 28px; max-width:1180px; margin:0 auto; flex-wrap:wrap; gap:10px; }
   .logo{ display:flex; align-items:center; gap:10px; font-family:var(--font-display); font-weight:700; font-size:1rem; }
-  .nav-actions{ display:flex; gap:10px; }
+  .nav-actions{ display:flex; gap:10px; flex-wrap:wrap; }
 
-  .wrap{ max-width:1280px; margin:0 auto; padding:0 28px 80px; }
-  .hero{ padding:36px 0 8px; display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; }
-  .hero h1{ font-size:clamp(1.6rem,3vw,2.1rem); margin:12px 0 6px; }
-  .hero p{ color:var(--muted); font-size:0.92rem; max-width:480px; }
-  .hero-figures{ display:flex; gap:26px; flex-wrap:wrap; }
-  .hero-figure .label{ font-family:var(--font-mono); font-size:0.62rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; }
-  .hero-figure .value{ font-family:var(--font-mono); font-size:1.3rem; margin-top:3px; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 28px 80px; }
 
-  .btn{
-    font-family:var(--font-mono); font-size:0.78rem; letter-spacing:0.02em; padding:10px 16px;
-    border-radius:3px; cursor:pointer; border:1px solid var(--grid-line); background:transparent; color:var(--paper);
-    transition:border-color .15s, background .15s;
+  /* ---------- HERO STAT BAR ---------- */
+  .hero{ padding:40px 0 6px; }
+  .hero-top{ display:flex; justify-content:space-between; align-items:flex-end; gap:24px; flex-wrap:wrap; }
+  .hero h1{ font-size:clamp(1.7rem,3vw,2.3rem); margin:14px 0 8px; }
+  .hero p{ color:var(--muted); font-size:0.94rem; max-width:480px; }
+
+  .stat-strip{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--grid-line);
+    border:1px solid var(--grid-line); border-radius:8px; overflow:hidden; margin-top:26px;
   }
-  .btn:hover{ border-color:var(--muted); }
-  .btn-primary{ background:var(--copper); border-color:var(--copper); color:var(--ink); }
-  .btn-primary:hover{ background:#ffa05f; }
+  .stat-cell{ background:var(--ink-2); padding:20px 22px; }
+  .stat-cell .label{ font-family:var(--font-mono); font-size:0.68rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; }
+  .stat-cell .value{ font-family:var(--font-mono); font-size:1.5rem; margin-top:6px; }
+  @media (max-width:700px){ .stat-strip{ grid-template-columns:1fr; } }
 
   .flags-banner{
     margin-top:18px; padding:14px 18px; border-radius:6px; border:1px solid var(--grid-line);
@@ -70,56 +70,36 @@
   .flags-banner ul{ margin-top:8px; padding-left:18px; color:var(--paper); }
   .flags-banner li{ margin-bottom:4px; }
 
-  /* ---------- ISOMETRIC RIG DIAGRAM ---------- */
-  .rig-section{ margin-top:40px; display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:center; }
-  .rig-stage{
-    perspective:1400px; height:480px; display:flex; align-items:center; justify-content:center;
-    position:relative;
-  }
-  .rig-3d{
-    width:280px; height:340px; position:relative;
-    transform-style:preserve-3d;
-    transform:rotateX(52deg) rotateZ(-38deg);
-  }
-  .iso-part{
-    position:absolute; background:var(--ink-2); border:1px solid var(--muted);
-    box-shadow:0 0 0 1px rgba(0,0,0,0.2), 4px 4px 14px rgba(0,0,0,0.35);
-  }
-  .iso-part.preferred-edge{ border-color:var(--copper); }
-  .iso-floor{ width:280px; height:340px; left:0; top:0; background:var(--ink-3); border-color:var(--grid-line); transform:translateZ(0px); }
-  .iso-mobo{ width:200px; height:240px; left:40px; top:50px; background:var(--ink-2); transform:translateZ(6px); }
-  .iso-cpu{ width:46px; height:46px; left:108px; top:90px; background:var(--copper); border-color:var(--copper); transform:translateZ(22px); box-shadow:0 0 16px rgba(255,138,61,0.5); }
-  .iso-cooler{ width:64px; height:64px; left:98px; top:80px; background:transparent; border:1.5px dashed var(--cyan); transform:translateZ(40px); border-radius:50%; }
-  .iso-ram{ width:14px; height:90px; left:175px; top:75px; background:var(--ink-3); transform:translateZ(20px); }
-  .iso-ram2{ width:14px; height:90px; left:193px; top:75px; background:var(--ink-3); transform:translateZ(20px); }
-  .iso-gpu{ width:190px; height:46px; left:45px; top:210px; background:var(--ink-3); transform:translateZ(26px); }
-  .iso-storage{ width:50px; height:50px; left:230px; top:200px; background:var(--ink-3); transform:translateZ(10px); }
-  .iso-psu{ width:120px; height:60px; left:80px; top:300px; background:var(--ink-3); transform:translateZ(2px); }
+  /* ---------- SPEC CARD GRID ---------- */
+  .section-heading{ margin:44px 0 18px; display:flex; align-items:baseline; gap:14px; }
+  .section-heading h2{ font-size:1.2rem; }
+  .section-heading .count{ font-family:var(--font-mono); font-size:0.78rem; color:var(--muted); }
 
-  .callout-layer{ position:absolute; inset:0; pointer-events:none; }
-  .callout{
-    position:absolute; font-family:var(--font-mono); font-size:0.72rem; white-space:nowrap;
-    color:var(--paper); display:flex; align-items:center; gap:8px;
+  .spec-cards{ display:grid; grid-template-columns:repeat(2, 1fr); gap:16px; }
+  @media (max-width:760px){ .spec-cards{ grid-template-columns:1fr; } }
+
+  .spec-card{
+    background:var(--ink-2); border:1px solid var(--grid-line); border-radius:8px;
+    padding:22px; display:flex; gap:16px;
   }
-  .callout::before{ content:""; width:36px; height:1px; background:var(--copper); display:inline-block; }
-  .callout .callout-label{ color:var(--copper); font-size:0.64rem; letter-spacing:0.06em; margin-right:4px; }
-  .callout.flip::before{ order:2; }
-  .callout.flip{ flex-direction:row-reverse; }
-
-  .rig-caption{ font-family:var(--font-mono); font-size:0.76rem; color:var(--muted); text-align:center; margin-top:10px; }
-
-  .specs-panel{ }
-  .specs-row{ padding:14px 0; border-bottom:1px solid var(--grid-line); }
-  .specs-row.empty .specs-row-name{ color:var(--muted); }
-  .specs-row-cat{ font-family:var(--font-mono); font-size:0.66rem; color:var(--copper); letter-spacing:0.08em; }
-  .specs-row-name{ font-family:var(--font-display); font-size:1rem; margin:6px 0 6px; }
-  .specs-row-specs{ font-family:var(--font-mono); font-size:0.78rem; color:var(--muted); }
-  .specs-row-price{ font-family:var(--font-mono); font-size:0.86rem; color:var(--paper); margin-top:6px; }
-
-  @media (max-width:900px){
-    .rig-section{ grid-template-columns:1fr; }
-    .rig-stage{ height:380px; }
+  .spec-card.empty{ opacity:0.55; }
+  .spec-icon{
+    width:44px; height:44px; border-radius:6px; background:var(--ink-3); border:1px solid var(--grid-line);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
   }
+  .spec-icon svg{ width:22px; height:22px; }
+  .spec-body{ min-width:0; flex:1; }
+  .spec-pn{ font-family:var(--font-mono); font-size:0.66rem; color:var(--copper); letter-spacing:0.08em; }
+  .spec-name{ font-family:var(--font-display); font-size:1.05rem; margin:6px 0 10px; }
+  .spec-card.empty .spec-name{ color:var(--muted); font-family:var(--font-mono); font-size:0.9rem; }
+  .spec-table{ border-top:1px solid var(--grid-line); }
+  .spec-table-row{
+    display:flex; justify-content:space-between; gap:12px; padding:7px 0;
+    border-bottom:1px solid var(--grid-line); font-family:var(--font-mono); font-size:0.78rem;
+  }
+  .spec-table-row span:first-child{ color:var(--muted); }
+  .spec-table-row span:last-child{ color:var(--paper); text-align:right; }
+  .spec-price{ font-family:var(--font-mono); font-size:1rem; color:var(--cyan); margin-top:12px; }
 
   /* ---------- PRINT ---------- */
   #print-sheet{ display:none; }
@@ -131,6 +111,15 @@
   #print-sheet th, #print-sheet td{ border:1px solid #999; padding:8px 10px; text-align:left; vertical-align:top; }
   #print-sheet .note{ font-size:0.78rem; color:#555; margin-top:14px; }
   #print-sheet ul{ padding-left:18px; margin:8px 0; }
+
+  .btn{
+    font-family:var(--font-mono); font-size:0.78rem; letter-spacing:0.02em; padding:10px 16px;
+    border-radius:3px; cursor:pointer; border:1px solid var(--grid-line); background:transparent; color:var(--paper);
+    transition:border-color .15s, background .15s;
+  }
+  .btn:hover{ border-color:var(--muted); }
+  .btn-primary{ background:var(--copper); border-color:var(--copper); color:var(--ink); }
+  .btn-primary:hover{ background:#ffa05f; }
 
   .empty-state{ padding:80px 0; text-align:center; }
   .empty-state p{ color:var(--muted); margin-top:10px; }
@@ -155,41 +144,24 @@
 
 <div class="wrap" id="page-content">
   <div class="hero">
-    <div>
-      <p class="eyebrow">RIG.001 — REVIEW</p>
-      <h1>Your build, full spec sheet.</h1>
-      <p>Every part you picked, laid out on the rig and listed in full below.</p>
+    <div class="hero-top">
+      <div>
+        <p class="eyebrow">RIG.001 — REVIEW</p>
+        <h1>Your build, full spec sheet.</h1>
+        <p>Every part you picked, with full specs and price, checked against each other.</p>
+      </div>
     </div>
-    <div class="hero-figures">
-      <div class="hero-figure"><div class="label">Total</div><div class="value" id="hero-total">₹0</div></div>
-      <div class="hero-figure"><div class="label">Est. draw</div><div class="value" id="hero-watt">—</div></div>
-      <div class="hero-figure"><div class="label">Status</div><div class="value" id="hero-status">—</div></div>
+    <div class="stat-strip">
+      <div class="stat-cell"><div class="label">Total</div><div class="value" id="hero-total">₹0</div></div>
+      <div class="stat-cell"><div class="label">Est. draw</div><div class="value" id="hero-watt">—</div></div>
+      <div class="stat-cell"><div class="label">Status</div><div class="value" id="hero-status">—</div></div>
     </div>
   </div>
 
   <div class="flags-banner" id="flags-banner"></div>
 
-  <div class="rig-section">
-    <div>
-      <div class="rig-stage">
-        <div class="rig-3d">
-          <div class="iso-part iso-floor"></div>
-          <div class="iso-part iso-mobo"></div>
-          <div class="iso-part iso-gpu"></div>
-          <div class="iso-part iso-ram"></div>
-          <div class="iso-part iso-ram2"></div>
-          <div class="iso-part iso-storage"></div>
-          <div class="iso-part iso-psu"></div>
-          <div class="iso-part iso-cooler"></div>
-          <div class="iso-part iso-cpu preferred-edge"></div>
-        </div>
-        <div class="callout-layer" id="callout-layer"></div>
-      </div>
-      <p class="rig-caption" id="rig-caption">Cabinet — not selected</p>
-    </div>
-
-    <div class="specs-panel" id="specs-panel"></div>
-  </div>
+  <div class="section-heading"><h2>Full build</h2><span class="count" id="section-count"></span></div>
+  <div class="spec-cards" id="spec-cards"></div>
 </div>
 
 <div class="empty-state" id="empty-state" style="display:none;">
@@ -212,6 +184,17 @@ const CATEGORY_META = [
   {id:'psu', label:'PSU', pn:'PN—07'},
   {id:'cabinet', label:'Cabinet', pn:'PN—08'},
 ];
+
+const ICONS = {
+  cpu: '<rect x="6" y="6" width="12" height="12" rx="1.5" stroke="var(--copper)" stroke-width="1.4" fill="none"/><circle cx="12" cy="12" r="2.5" fill="var(--copper)"/>',
+  cooler: '<circle cx="12" cy="12" r="7" stroke="var(--cyan)" stroke-width="1.4" fill="none" stroke-dasharray="3 2"/><circle cx="12" cy="12" r="2" fill="var(--cyan)"/>',
+  gpu: '<rect x="4" y="9" width="16" height="7" rx="1.2" stroke="var(--paper)" stroke-width="1.4" fill="none"/><rect x="6" y="16" width="3" height="2" fill="var(--paper)"/><rect x="15" y="16" width="3" height="2" fill="var(--paper)"/>',
+  motherboard: '<rect x="4" y="4" width="16" height="16" rx="1.2" stroke="var(--muted)" stroke-width="1.4" fill="none"/><line x1="4" y1="9" x2="9" y2="9" stroke="var(--muted)" stroke-width="1.2"/><line x1="4" y1="13" x2="9" y2="13" stroke="var(--muted)" stroke-width="1.2"/>',
+  ram: '<rect x="8" y="3" width="3" height="18" rx="1" stroke="var(--paper)" stroke-width="1.2" fill="none"/><rect x="13" y="3" width="3" height="18" rx="1" stroke="var(--paper)" stroke-width="1.2" fill="none"/>',
+  storage: '<rect x="4" y="6" width="16" height="12" rx="1.5" stroke="var(--cyan)" stroke-width="1.4" fill="none"/><circle cx="12" cy="12" r="2.5" stroke="var(--cyan)" stroke-width="1.2" fill="none"/>',
+  psu: '<rect x="4" y="6" width="16" height="12" rx="1.5" stroke="var(--copper)" stroke-width="1.4" fill="none"/><line x1="8" y1="12" x2="16" y2="12" stroke="var(--copper)" stroke-width="1.4"/>',
+  cabinet: '<rect x="6" y="3" width="12" height="18" rx="1.5" stroke="var(--paper)" stroke-width="1.4" fill="none"/><circle cx="12" cy="7" r="1.2" fill="var(--paper)"/>',
+};
 
 const CATALOG = {
   cpu: [
@@ -404,7 +387,8 @@ if(!loaded || Object.keys(loaded.selections || {}).length === 0){
     return sum + (it ? it.price : 0);
   }, 0);
   const {flags, draw} = computeChecks(selections);
-  const allSelected = CATEGORY_META.every(c=>selections[c.id]);
+  const filledCount = CATEGORY_META.filter(c=>selections[c.id]).length;
+  const allSelected = filledCount === CATEGORY_META.length;
 
   document.getElementById('hero-total').textContent = inr(total);
   document.getElementById('hero-watt').textContent = draw ? draw+'W' : '—';
@@ -412,6 +396,8 @@ if(!loaded || Object.keys(loaded.selections || {}).length === 0){
   if(!allSelected){ statusEl.textContent='INCOMPLETE'; statusEl.style.color='var(--muted)'; }
   else if(flags.length){ statusEl.textContent=`FLAGGED (${flags.length})`; statusEl.style.color='var(--redline)'; }
   else { statusEl.textContent='CHECKED'; statusEl.style.color='var(--cyan)'; }
+
+  document.getElementById('section-count').textContent = `${filledCount} of ${CATEGORY_META.length} parts picked`;
 
   const banner = document.getElementById('flags-banner');
   if(flags.length){
@@ -422,45 +408,27 @@ if(!loaded || Object.keys(loaded.selections || {}).length === 0){
     banner.innerHTML = '✓ No compatibility flags on this build.';
   }
 
-  function shortName(item){ return item.name.length>30 ? item.name.slice(0,28)+'…' : item.name; }
-  const layerData = [
-    {cat:'cpu', x:'4%', y:'10%', flip:false},
-    {cat:'cooler', x:'58%', y:'2%', flip:true},
-    {cat:'motherboard', x:'62%', y:'24%', flip:true},
-    {cat:'ram', x:'66%', y:'40%', flip:true},
-    {cat:'gpu', x:'2%', y:'58%', flip:false},
-    {cat:'storage', x:'62%', y:'58%', flip:true},
-    {cat:'psu', x:'6%', y:'82%', flip:false},
-  ];
-  const layer = document.getElementById('callout-layer');
-  layer.innerHTML = layerData.map(d=>{
-    const meta = CATEGORY_META.find(c=>c.id===d.cat);
-    const item = getItem(d.cat, selections[d.cat]);
-    const text = item ? shortName(item) : 'Not selected';
-    return `<div class="callout ${d.flip?'flip':''}" style="left:${d.x}; top:${d.y};">
-      <span class="callout-label">${meta.pn}</span>${text}
-    </div>`;
-  }).join('');
-
-  const cabinetItem = getItem('cabinet', selections.cabinet);
-  document.getElementById('rig-caption').textContent = cabinetItem
-    ? `${cabinetItem.name} — ${Object.entries(cabinetItem.specs).map(([k,v])=>`${k}: ${v}`).join(' · ')}`
-    : 'Cabinet — not selected';
-
-  document.getElementById('specs-panel').innerHTML = CATEGORY_META.map(c=>{
+  document.getElementById('spec-cards').innerHTML = CATEGORY_META.map(c=>{
     const item = getItem(c.id, selections[c.id]);
+    const icon = `<svg viewBox="0 0 24 24">${ICONS[c.id]}</svg>`;
     if(!item){
-      return `<div class="specs-row empty">
-        <div class="specs-row-cat">${c.pn} · ${c.label.toUpperCase()}</div>
-        <div class="specs-row-name">Not selected</div>
+      return `<div class="spec-card empty">
+        <div class="spec-icon">${icon}</div>
+        <div class="spec-body">
+          <div class="spec-pn">${c.pn} · ${c.label.toUpperCase()}</div>
+          <div class="spec-name">Not selected yet</div>
+        </div>
       </div>`;
     }
-    const specsStr = Object.entries(item.specs).map(([k,v])=>`${k}: ${v}`).join(' · ');
-    return `<div class="specs-row">
-      <div class="specs-row-cat">${c.pn} · ${c.label.toUpperCase()}</div>
-      <div class="specs-row-name">${item.name}</div>
-      <div class="specs-row-specs">${specsStr}</div>
-      <div class="specs-row-price">${inr(item.price)}</div>
+    const rows = Object.entries(item.specs).map(([k,v])=>`<div class="spec-table-row"><span>${k}</span><span>${v}</span></div>`).join('');
+    return `<div class="spec-card">
+      <div class="spec-icon">${icon}</div>
+      <div class="spec-body">
+        <div class="spec-pn">${c.pn} · ${c.label.toUpperCase()}</div>
+        <div class="spec-name">${item.name}</div>
+        <div class="spec-table">${rows}</div>
+        <div class="spec-price">${inr(item.price)}</div>
+      </div>
     </div>`;
   }).join('');
 
