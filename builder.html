@@ -104,12 +104,41 @@
   .carousel-arrow:disabled:hover{ border-color:var(--grid-line); color:var(--muted); }
   .carousel-pn{ font-family:var(--font-mono); font-size:0.68rem; color:var(--copper); letter-spacing:0.1em; }
   .carousel-complete{
-    display:none; justify-content:center; text-align:center;
-    margin-top:6px; padding-top:16px; border-top:1px dashed var(--grid-line);
-    font-family:var(--font-mono); font-size:0.82rem;
+    display:none; flex-direction:column; align-items:center; gap:12px; text-align:center;
+    margin-top:14px; padding-top:22px; border-top:1px dashed var(--grid-line);
   }
-  .carousel-complete .complete-ok{ color:var(--cyan); }
-  .carousel-complete .complete-flag{ color:var(--redline); }
+  .complete-heading{
+    font-family:var(--font-display); font-size:1.05rem; letter-spacing:0.02em;
+  }
+  .complete-heading.has-flags{ color:var(--redline); }
+  .complete-heading.is-ok{ color:var(--cyan); }
+  .complete-total{ font-family:var(--font-mono); font-size:0.8rem; color:var(--muted); }
+
+  .specs-list{ }
+  .specs-row{ padding:13px 22px; border-bottom:1px solid var(--grid-line); }
+  .specs-row.empty .specs-row-name{ color:var(--muted); }
+  .specs-row-cat{ font-family:var(--font-mono); font-size:0.64rem; color:var(--copper); letter-spacing:0.08em; }
+  .specs-row-name{ font-family:var(--font-display); font-size:0.95rem; margin:5px 0; }
+  .specs-row-specs{ font-family:var(--font-mono); font-size:0.74rem; color:var(--muted); }
+  .specs-row-price{ font-family:var(--font-mono); font-size:0.82rem; color:var(--paper); margin-top:5px; }
+  .specs-summary{ padding:16px 22px; font-family:var(--font-mono); font-size:0.88rem; border-bottom:1px solid var(--grid-line); }
+  .specs-summary .total-line{ color:var(--paper); }
+  .specs-summary .flags-line{ color:var(--redline); margin-top:6px; font-size:0.78rem; }
+  .specs-summary .ok-line{ color:var(--cyan); margin-top:6px; font-size:0.78rem; }
+
+  .specs-modal{ max-width:920px; }
+  .specs-grid{ display:grid; grid-template-columns:260px 1fr; gap:0; }
+  .specs-diagram-panel{
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    padding:20px; border-right:1px solid var(--grid-line);
+  }
+  .specs-diagram{ width:100%; max-width:220px; }
+  .specs-diagram text.dlabel{ font-family:'JetBrains Mono'; font-size:7.5px; letter-spacing:0.06em; fill:var(--copper); }
+  .specs-diagram text.dname{ font-family:'JetBrains Mono'; font-size:10px; font-weight:600; fill:var(--paper); }
+  .specs-diagram text.dspec{ font-family:'JetBrains Mono'; font-size:8px; fill:var(--muted); }
+  .specs-diagram-caption{ font-family:var(--font-mono); font-size:0.7rem; color:var(--muted); text-align:center; }
+  .specs-details{ min-width:0; }
+  @media (max-width:700px){ .specs-grid{ grid-template-columns:1fr; } .specs-diagram-panel{ border-right:none; border-bottom:1px solid var(--grid-line); } }
 
   .section-heading{ display:flex; align-items:baseline; gap:14px; margin-bottom:4px; }
   .section-heading h2{ font-size:1.15rem; }
@@ -319,6 +348,71 @@
   </div>
 </div>
 
+<!-- VIEW SPECS OVERLAY -->
+<div class="modal-overlay" id="specs-overlay">
+  <div class="modal specs-modal">
+    <div class="modal-header">
+      <h3>YOUR BUILD — FULL SPEC SHEET</h3>
+      <button class="modal-close" id="specs-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="specs-summary" id="specs-summary"></div>
+      <div class="specs-grid">
+        <div class="specs-diagram-panel">
+          <svg class="specs-diagram" viewBox="0 0 260 460" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="10" width="240" height="420" rx="8" fill="var(--ink-3)" stroke="var(--muted)" stroke-width="1.2"/>
+            <line x1="10" y1="70" x2="250" y2="70" stroke="var(--grid-line)"/>
+            <line x1="10" y1="130" x2="250" y2="130" stroke="var(--grid-line)"/>
+            <line x1="10" y1="190" x2="250" y2="190" stroke="var(--grid-line)"/>
+            <line x1="10" y1="250" x2="250" y2="250" stroke="var(--grid-line)"/>
+            <line x1="10" y1="310" x2="250" y2="310" stroke="var(--grid-line)"/>
+            <line x1="10" y1="370" x2="250" y2="370" stroke="var(--grid-line)"/>
+
+            <text class="dlabel" x="20" y="26">CPU</text>
+            <text class="dname" id="diagram-cpu-name" x="20" y="42">—</text>
+            <text class="dspec" id="diagram-cpu-spec" x="20" y="55">—</text>
+
+            <text class="dlabel" x="20" y="86">COOLER</text>
+            <text class="dname" id="diagram-cooler-name" x="20" y="102">—</text>
+            <text class="dspec" id="diagram-cooler-spec" x="20" y="115">—</text>
+
+            <text class="dlabel" x="20" y="146">MOTHERBOARD</text>
+            <text class="dname" id="diagram-motherboard-name" x="20" y="162">—</text>
+            <text class="dspec" id="diagram-motherboard-spec" x="20" y="175">—</text>
+
+            <text class="dlabel" x="20" y="206">RAM</text>
+            <text class="dname" id="diagram-ram-name" x="20" y="222">—</text>
+            <text class="dspec" id="diagram-ram-spec" x="20" y="235">—</text>
+
+            <text class="dlabel" x="20" y="266">GPU</text>
+            <text class="dname" id="diagram-gpu-name" x="20" y="282">—</text>
+            <text class="dspec" id="diagram-gpu-spec" x="20" y="295">—</text>
+
+            <text class="dlabel" x="20" y="326">STORAGE</text>
+            <text class="dname" id="diagram-storage-name" x="20" y="342">—</text>
+            <text class="dspec" id="diagram-storage-spec" x="20" y="355">—</text>
+
+            <text class="dlabel" x="20" y="386">PSU</text>
+            <text class="dname" id="diagram-psu-name" x="20" y="402">—</text>
+            <text class="dspec" id="diagram-psu-spec" x="20" y="415">—</text>
+          </svg>
+          <div class="specs-diagram-caption" id="specs-cabinet-caption">Cabinet — not selected</div>
+        </div>
+        <div class="specs-details">
+          <div class="specs-list" id="specs-list"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="specs-save-file">Save build file</button>
+      <button class="btn" id="specs-close-2">Close</button>
+      <button class="btn btn-primary" id="specs-export">Export / Print</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="load-file-input" accept="application/json" style="display:none">
+
 <div class="dock">
   <div class="dock-inner">
     <div class="dock-row">
@@ -341,6 +435,9 @@
         </div>
       </div>
       <div class="dock-actions">
+        <button class="btn" id="btn-view-specs">View specs</button>
+        <button class="btn" id="btn-save-file">Save build file</button>
+        <button class="btn" id="btn-load-file">Load build file</button>
         <button class="btn" id="btn-share">Copy share link</button>
         <button class="btn" id="btn-export">Export spec sheet</button>
         <button class="btn btn-danger" id="btn-reset">Reset build</button>
@@ -840,7 +937,9 @@ document.getElementById('modal-overlay').addEventListener('click', e=>{
   if(e.target.id==='modal-overlay') closeModal();
 });
 document.addEventListener('keydown', e=>{
-  if(e.key==='Escape' && document.getElementById('modal-overlay').classList.contains('open')) closeModal();
+  if(e.key!=='Escape') return;
+  if(document.getElementById('modal-overlay').classList.contains('open')) closeModal();
+  if(document.getElementById('specs-overlay').classList.contains('open')) closeSpecsOverlay();
 });
 
 /* ======================= STAGE: TABS / PLATFORM / CAROUSEL ======================= */
@@ -888,10 +987,19 @@ function renderCarouselComplete(){
   }, 0);
   const {flags} = computeChecks(state.selections);
   banner.style.display = 'flex';
-  banner.innerHTML = flags.length
-    ? `<span class="complete-flag">⚠ All 8 parts picked — ${flags.length} flag${flags.length>1?'s':''} to fix. See Your Build below.</span>`
-    : `<span class="complete-ok">✓ All 8 parts picked — ${inr(total)} total, no compatibility flags.</span>`;
+  const headingClass = flags.length ? 'has-flags' : 'is-ok';
+  const headingText = flags.length
+    ? `⚠ BUILD COMPLETE — ${flags.length} FLAG${flags.length>1?'S':''} TO FIX`
+    : '✓ YOUR BUILD IS COMPLETE';
+  banner.innerHTML = `
+    <div class="complete-heading ${headingClass}">${headingText}</div>
+    <div class="complete-total">${inr(total)} total</div>
+    <button type="button" class="btn btn-primary" id="carousel-view-specs">VIEW SPECS</button>
+  `;
 }
+document.getElementById('carousel-complete').addEventListener('click', e=>{
+  if(e.target.closest('#carousel-view-specs')) openSpecsOverlay();
+});
 document.getElementById('carousel-prev').addEventListener('click', ()=>{
   if(carouselIndex>0){ carouselIndex--; renderCarousel(); }
 });
@@ -950,6 +1058,150 @@ function renderAll(){
   renderBuildGrid();
   renderDock();
 }
+
+/* ======================= VIEW SPECS OVERLAY ======================= */
+function openSpecsOverlay(){
+  const total = CATEGORY_META.reduce((sum,c)=>{
+    const it = getItem(c.id, state.selections[c.id]);
+    return sum + (it ? it.price : 0);
+  }, 0);
+  const {flags, draw} = computeChecks(state.selections);
+
+  const summary = document.getElementById('specs-summary');
+  summary.innerHTML = `
+    <div class="total-line">Total: ${inr(total)}${draw ? ` &nbsp;·&nbsp; Est. draw: ${draw}W` : ''}</div>
+    ${flags.length
+      ? `<div class="flags-line">⚠ ${flags.length} flag${flags.length>1?'s':''}: ${flags.map(f=>f.message).join(' ')}</div>`
+      : `<div class="ok-line">✓ No compatibility flags.</div>`}
+  `;
+
+  const list = document.getElementById('specs-list');
+  list.innerHTML = CATEGORY_META.map(c=>{
+    const item = getItem(c.id, state.selections[c.id]);
+    if(!item){
+      return `<div class="specs-row empty">
+        <div class="specs-row-cat">${c.pn} · ${c.label.toUpperCase()}</div>
+        <div class="specs-row-name">Not selected</div>
+      </div>`;
+    }
+    const specsStr = Object.entries(item.specs).map(([k,v])=>`${k}: ${v}`).join(' · ');
+    return `<div class="specs-row">
+      <div class="specs-row-cat">${c.pn} · ${c.label.toUpperCase()}</div>
+      <div class="specs-row-name">${item.name}</div>
+      <div class="specs-row-specs">${specsStr}</div>
+      <div class="specs-row-price">${inr(item.price)}</div>
+    </div>`;
+  }).join('');
+
+  const diagramCats = ['cpu','cooler','motherboard','ram','gpu','storage','psu'];
+  diagramCats.forEach(catId=>{
+    const item = getItem(catId, state.selections[catId]);
+    const nameEl = document.getElementById('diagram-'+catId+'-name');
+    const specEl = document.getElementById('diagram-'+catId+'-spec');
+    if(item){
+      nameEl.textContent = item.name.length > 27 ? item.name.slice(0,25)+'…' : item.name;
+      const firstKey = Object.keys(item.specs)[0];
+      specEl.textContent = firstKey ? `${firstKey}: ${item.specs[firstKey]}` : '';
+    } else {
+      nameEl.textContent = 'Not selected';
+      specEl.textContent = '';
+    }
+  });
+  const cabinetItem = getItem('cabinet', state.selections.cabinet);
+  document.getElementById('specs-cabinet-caption').textContent = cabinetItem
+    ? `${cabinetItem.name} — ${Object.entries(cabinetItem.specs).map(([k,v])=>`${k}: ${v}`).join(' · ')}`
+    : 'Cabinet — not selected';
+
+  document.getElementById('specs-overlay').classList.add('open');
+}
+function closeSpecsOverlay(){
+  document.getElementById('specs-overlay').classList.remove('open');
+}
+document.getElementById('specs-close').addEventListener('click', closeSpecsOverlay);
+document.getElementById('specs-close-2').addEventListener('click', closeSpecsOverlay);
+document.getElementById('specs-overlay').addEventListener('click', e=>{
+  if(e.target.id==='specs-overlay') closeSpecsOverlay();
+});
+document.getElementById('specs-export').addEventListener('click', ()=>{
+  closeSpecsOverlay();
+  buildPrintSheet();
+  document.body.classList.add('printing');
+  window.print();
+});
+
+/* ======================= SAVE / LOAD BUILD FILE ======================= */
+async function saveBuildToFile(){
+  const payload = JSON.stringify({selections: state.selections, platform: state.platform, savedAt: new Date().toISOString()}, null, 2);
+  const filename = 'buildprint-build.json';
+  if(window.showSaveFilePicker){
+    try{
+      const handle = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [{description:'BUILDPRINT build file', accept:{'application/json':['.json']}}]
+      });
+      const writable = await handle.createWritable();
+      await writable.write(payload);
+      await writable.close();
+      return;
+    }catch(err){
+      if(err && err.name==='AbortError') return; // user cancelled the save dialog
+      console.warn('Save picker unavailable, falling back to direct download', err);
+    }
+  }
+  const blob = new Blob([payload], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function applyLoadedBuildJSON(text){
+  try{
+    const parsed = JSON.parse(text);
+    if(!parsed || typeof parsed.selections !== 'object') throw new Error('not a build file');
+    state.selections = parsed.selections;
+    state.platform = parsed.platform || null;
+    carouselIndex = 0;
+    saveToStorage();
+    renderPlatformPills();
+    renderCarousel();
+    renderAll();
+  }catch(e){
+    alert("That file doesn't look like a BUILDPRINT build file.");
+  }
+}
+
+async function loadBuildFromFile(){
+  if(window.showOpenFilePicker){
+    try{
+      const [handle] = await window.showOpenFilePicker({
+        types: [{description:'BUILDPRINT build file', accept:{'application/json':['.json']}}],
+        multiple:false
+      });
+      const file = await handle.getFile();
+      applyLoadedBuildJSON(await file.text());
+      return;
+    }catch(err){
+      if(err && err.name==='AbortError') return;
+      console.warn('Open picker unavailable, falling back to file input', err);
+    }
+  }
+  document.getElementById('load-file-input').click();
+}
+document.getElementById('load-file-input').addEventListener('change', e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>applyLoadedBuildJSON(reader.result);
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+document.getElementById('btn-view-specs').addEventListener('click', openSpecsOverlay);
+document.getElementById('btn-save-file').addEventListener('click', saveBuildToFile);
+document.getElementById('btn-load-file').addEventListener('click', loadBuildFromFile);
+document.getElementById('specs-save-file').addEventListener('click', saveBuildToFile);
 
 /* ---- dock actions ---- */
 document.getElementById('btn-share').addEventListener('click', e=>{
